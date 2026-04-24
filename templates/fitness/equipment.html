@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}健身器材 - 健康饮食与健身推荐系统{% endblock %}
+
+{% block content %}
+<div class="container py-6">
+    <!-- 页面标题 -->
+    <h1 class="text-center mb-6">
+        <i class="bi bi-dumbbell text-primary me-2"></i>健身器材价格与使用说明
+    </h1>
+
+    <!-- 搜索框 -->
+    <div class="row mb-6">
+        <div class="col-md-8 mx-auto">
+            <div class="input-group">
+                <input type="text" class="form-control" name="keyword" placeholder="请输入器材名称（如：哑铃、跑步机）" value="{{ keyword }}">
+                <button class="btn btn-primary" onclick="window.location.href='/equipment?keyword='+encodeURIComponent(this.previousElementSibling.value)">
+                    <i class="bi bi-search me-1"></i> 搜索
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 器材卡片列表 -->
+    <div class="row">
+        {% if equipment_list %}
+            {% for eq in equipment_list %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-5">
+                <div class="card h-100">
+                    <!-- 器材图片 -->
+                    <img src="{{ eq.image_url }}"
+     class="card-img-top"
+     alt="{{ eq.name }}"
+     onerror="this.onerror=null; this.src='/static/images/equipment/default.jpg'"
+     style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ eq.name }}</h5>
+                        <p class="card-text">{{ eq.usage_desc }}</p>
+                        <p class="card-text"><strong>价格:</strong> {{ eq.price }}</p>
+                        <button class="btn btn-success btn-sm add-to-cart"
+                                data-id="{{ eq.name }}"
+                                data-name="{{ eq.name }}"
+                                data-price="{{ eq.price }}"
+                                data-type="equipment">
+                            <i class="bi bi-cart-plus me-1"></i> 加入购物车
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-6">
+                <i class="bi bi-search display-4 text-muted mb-3"></i>
+                <p class="h5 text-muted">未找到相关器材</p>
+                <small class="text-muted">请更换关键词重新搜索</small>
+                <div class="mt-4">
+                    <a href="/equipment" class="btn btn-primary">
+                        <i class="bi bi-arrow-repeat"></i> 查看全部器材
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Register - ZENITH FITNESS{% endblock %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* ================= 沉浸式全屏布局 (与Login一致) ================= */
+    .auth-page-wrapper {
+        position: fixed; /* 固定定位，脱离文档流 */
+        top: 0; left: 0; right: 0; bottom: 0; /* 铺满全屏 */
+        width: 100vw; height: 100vh;
+        display: flex; justify-content: center; align-items: center;
+        font-family: 'Montserrat', "Helvetica Neue", Arial, sans-serif;
+        background:
+            radial-gradient(circle at 85% 50%, rgba(79,172,254,0.12), transparent 30%),
+            radial-gradient(circle at 15% 30%, rgba(0,242,254,0.12), transparent 30%),
+            #f4f8fb;
+        z-index: 9999; /* 盖住导航栏 */
+        overflow-y: auto; padding: 40px 0;
+    }
+
+    .auth-page-wrapper::before {
+        content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px; z-index: -1; pointer-events: none;
+    }
+
+    .auth-container { width: 100%; max-width: 460px; padding: 20px; position: relative; margin: auto; }
+
+    .auth-container::before, .auth-container::after {
+        content: ''; position: absolute; width: 40px; height: 40px; border: 1.5px solid rgba(79, 172, 254, 0.5);
+        opacity: 0.6; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2; pointer-events: none;
+    }
+    .auth-container::before { top: 0; left: 0; border-right: none; border-bottom: none; }
+    .auth-container::after { bottom: 0; right: 0; border-left: none; border-top: none; }
+    .auth-container:hover::before, .auth-container:hover::after { opacity: 1; width: 60px; height: 60px; border-color: #4facfe; }
+
+    .auth-card {
+        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+        padding: 40px 40px; position: relative; z-index: 10;
+    }
+
+    .brand-header { text-align: center; margin-bottom: 30px; }
+    .brand-header h1 { font-size: 24px; font-weight: 700; letter-spacing: 6px; margin-bottom: 5px; color: #2c3e50; }
+    .brand-line { width: 1px; height: 20px; background-color: rgba(79, 172, 254, 0.3); margin: 15px auto 0; }
+    .form-title { font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #95a5a6; margin-bottom: 30px; text-align: center; }
+
+    .input-group { position: relative; margin-bottom: 30px; }
+    .input-group input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(0,0,0,0.1); color: #2c3e50; padding: 10px 0 10px 5px; font-size: 14px; font-family: 'Montserrat', sans-serif; font-weight: 500; outline: none; transition: all 0.3s ease; }
+    .input-group label { position: absolute; top: 10px; left: 5px; color: #95a5a6; font-size: 13px; letter-spacing: 1px; pointer-events: none; transition: all 0.3s ease; }
+    .input-group input:focus, .input-group input:not(:placeholder-shown) { border-bottom-color: #4facfe; }
+    .input-group input:focus ~ label, .input-group input:not(:placeholder-shown) ~ label { top: -18px; left: 0; font-size: 10px; color: #4facfe; letter-spacing: 1px; font-weight: 600; }
+
+    .btn-submit { width: 100%; background: transparent; color: #4facfe; border: 1px solid #4facfe; padding: 15px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: all 0.4s ease; margin-top: 10px; }
+    .btn-submit:hover { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #ffffff; border-color: transparent; box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3); transform: translateY(-2px); }
+
+    .auth-switch { text-align: center; margin-top: 25px; font-size: 12px; color: #95a5a6; }
+    .auth-switch a { color: #2c3e50; text-decoration: none; margin-left: 5px; font-weight: 600; transition: color 0.3s ease; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+    .auth-switch a:hover { color: #4facfe; border-bottom-color: #4facfe; }
+
+    .error-msg { color: #e53e3e; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: center; background: #fff5f5; padding: 10px; border-radius: 4px; }
+
+    .pwd-strength-container { height: 2px; background: #eee; margin-top: 5px; border-radius: 2px; overflow: hidden; }
+    .pwd-strength-bar { height: 100%; width: 0; transition: all 0.3s ease; }
+    .pwd-info { display: flex; justify-content: space-between; font-size: 10px; margin-top: 4px; color: #95a5a6; }
+
+    /* 返回主页按钮 */
+    .back-home { position: absolute; top: 30px; left: 30px; color: #2c3e50; text-decoration: none; font-size: 24px; z-index: 10000; transition: color 0.3s ease; }
+    .back-home:hover { color: #4facfe; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    <a href="/" class="back-home" title="返回首页"><i class="bi bi-arrow-left-circle"></i></a>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="brand-header">
+                <h1>ZENITH</h1>
+                <div class="brand-line"></div>
+            </div>
+
+            <h3 class="form-title">Join The Elite</h3>
+
+            {% if error %} <div class="error-msg"><i class="bi bi-x-circle"></i> {{ error }}</div> {% endif %}
+
+            <form id="registerForm" action="/register" method="POST">
+                <div class="input-group">
+                    <input type="text" id="username" name="username" placeholder=" " required minlength="3" maxlength="20">
+                    <label for="username">Username</label>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <input type="password" id="password" name="password" placeholder=" " required minlength="6">
+                    <label for="password">Password</label>
+                    <div class="pwd-strength-container"><div class="pwd-strength-bar" id="pwdBar"></div></div>
+                    <div class="pwd-info">
+                        <span id="pwdText"></span>
+                        <span id="charCount">0/20</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder=" " required>
+                    <label for="confirm_password">Confirm Password</label>
+                </div>
+
+                <button type="submit" class="btn-submit">Initialize</button>
+            </form>
+
+            <div class="auth-switch">
+                Already an elite? <a href="/login">Sign In</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pwdInput = document.getElementById('password');
+    const pwdBar = document.getElementById('pwdBar');
+    const pwdText = document.getElementById('pwdText');
+    const charCount = document.getElementById('charCount');
+    const registerForm = document.getElementById('registerForm');
+    const confirmPwd = document.getElementById('confirm_password');
+
+    pwdInput.addEventListener('input', function() {
+        const val = this.value;
+        charCount.textContent = val.length + '/20';
+
+        let strength = 0;
+        if (val.length >= 6) strength++;
+        if (val.match(/[a-zA-Z]/) && val.match(/[0-9]/)) strength++;
+
+        if (val.length === 0) {
+            pwdBar.style.width = '0'; pwdText.textContent = '';
+        } else if (strength === 0) {
+            pwdBar.style.width = '33%'; pwdBar.style.background = '#fc8181'; pwdText.textContent = 'Weak'; pwdText.style.color = '#fc8181';
+        } else if (strength === 1) {
+            pwdBar.style.width = '66%'; pwdBar.style.background = '#f6ad55'; pwdText.textContent = 'Medium'; pwdText.style.color = '#f6ad55';
+        } else {
+            pwdBar.style.width = '100%'; pwdBar.style.background = '#4facfe'; pwdText.textContent = 'Strong'; pwdText.style.color = '#4facfe';
+        }
+    });
+
+    registerForm.addEventListener('submit', function(e) {
+        if(pwdInput.value !== confirmPwd.value) {
+            e.preventDefault();
+            alert("Passwords do not match!");
+            return;
+        }
+        const submitBtn = this.querySelector('.btn-submit');
+        submitBtn.innerHTML = 'Processing...';
+        submitBtn.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+        submitBtn.style.color = 'white';
+        submitBtn.disabled = true;
+    });
+});
+</script>
+{% endblock %}

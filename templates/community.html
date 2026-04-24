@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+{% block title %}高阶运动社区 - ZENITH 悦康生态{% endblock %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        background-color: #fdfbfb;
+        background-image:
+            radial-gradient(at 0% 0%, rgba(212, 181, 142, 0.15) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(52, 64, 84, 0.05) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(212, 181, 142, 0.1) 0px, transparent 50%);
+        background-attachment: fixed;
+        color: #2c3e50;
+    }
+
+    .community-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; animation: fadeIn 0.8s ease-out;}
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 1);
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    }
+
+    /* 中间信息流 */
+    .main-feed { flex: 1; min-width: 0; }
+
+    /* 朋友圈风格发帖框 */
+    .post-composer { padding: 25px; margin-bottom: 30px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .post-composer:hover { background: rgba(255, 255, 255, 0.95); box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
+    .composer-header { display: flex; gap: 15px; margin-bottom: 15px; }
+    .composer-avatar { width: 45px; height: 45px; border-radius: 50%; background-color: #f4f2ea; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: #d4b58e; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
+    .composer-input { flex: 1; border: none; background: transparent; font-size: 1.1rem; color: #2c3e50; resize: none; outline: none; padding-top: 10px; min-height: 60px; font-family: inherit; }
+    .composer-input::placeholder { color: #94a3b8; }
+    .media-preview-container { position: relative; margin: 0 0 15px 60px; border-radius: 12px; overflow: hidden; max-width: 300px; }
+    .media-preview-container img, .media-preview-container video { width: 100%; border-radius: 12px; display: block; }
+    .remove-media-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: background 0.2s; }
+    .remove-media-btn:hover { background: #ff2c55; }
+    .composer-actions { display: flex; justify-content: space-between; align-items: center; padding-left: 60px; border-top: 1px solid rgba(0,0,0,0.04); padding-top: 15px; }
+    .composer-tools { display: flex; align-items: center; gap: 15px; }
+    .tool-btn { color: #64748b; font-size: 1.3rem; cursor: pointer; transition: color 0.3s; display: flex; align-items: center; margin: 0; padding: 0; background: none; border: none; }
+    .tool-btn:hover { color: #d4b58e; }
+    .topic-select { border: none; background: #f8fafc; color: #64748b; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; outline: none; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .topic-select:hover { background: #e2e8f0; color: #344054; }
+    .publish-btn { background: #344054; color: white; border: none; padding: 8px 24px; border-radius: 30px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(52, 64, 84, 0.2); }
+    .publish-btn:hover { background: #1d2939; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 64, 84, 0.3); }
+    .publish-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .feed-tabs { display: flex; gap: 15px; margin-bottom: 25px; }
+    .feed-tab {
+        padding: 12px 24px; border-radius: 30px;
+        background: rgba(255,255,255,0.7); color: #5c6c7d;
+        text-decoration: none; font-weight: 600; font-size: 1.05rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid rgba(255,255,255,1);
+    }
+    .feed-tab:hover { background: #ffffff; color: #2c3e50; transform: translateY(-2px); }
+    .feed-tab.active { background: #344054; color: #fff; box-shadow: 0 8px 20px rgba(52,64,84,0.2); border-color: #344054; }
+
+    .post-box { padding: 25px; margin-bottom: 25px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .post-box:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.06); background: rgba(255,255,255,0.95); }
+
+    .post-header { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
+    .post-avatar { width: 50px; height: 50px; border-radius: 50%; background: #f4f2ea; display: flex; align-items: center; justify-content: center; color: #d4b58e; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
+    .post-meta h4 { margin: 0 0 4px 0; font-size: 1.1rem; color: #2c3e50; font-weight: 700; }
+    .post-meta span { font-size: 0.85rem; color: #94a3b8; }
+
+    .post-topic { display: inline-block; padding: 6px 16px; background: rgba(212,181,142,0.15); color: #c49a6c; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
+    .post-content { color: #475569; line-height: 1.7; margin-bottom: 18px; font-size: 1.05rem; white-space: pre-wrap; }
+    .post-image { max-width: 100%; border-radius: 16px; margin-bottom: 18px; max-height: 400px; object-fit: cover; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .post-video { max-width: 100%; border-radius: 16px; margin-bottom: 18px; max-height: 500px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); background: #000; }
+
+    .post-actions { display: flex; gap: 25px; border-top: 1px solid rgba(0,0,0,0.04); padding-top: 18px; }
+    .action-btn { display: flex; align-items: center; gap: 8px; color: #94a3b8; border: none; background: none; cursor: pointer; font-size: 1rem; font-weight: 500; transition: all 0.2s;}
+    .action-btn:hover { color: #344054; transform: scale(1.05); }
+    .action-btn i { font-size: 1.2rem; }
+
+    /* 右侧面板 */
+    .sidebar-right { width: 340px; flex-shrink: 0; display: flex; flex-direction: column; gap: 25px; }
+    .profile-card { padding: 35px 25px; text-align: center; }
+
+    /* 头像上传功能样式 */
+    .avatar-wrapper {
+        position: relative;
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    .profile-card .avatar {
+        width: 100%; height: 100%; border-radius: 50%;
+        background-color: #ffffff;
+        border: 2px solid rgba(212,181,142,0.3);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem; color: #d4b58e;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        background-size: cover; background-position: center;
+        transition: all 0.3s;
+    }
+    .avatar-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.5rem; opacity: 0; transition: opacity 0.3s;
+    }
+    .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
+
+    .profile-card h3 { font-weight: 800; color: #2c3e50; font-size: 1.4rem; }
+
+    .checkin-btn { width: 100%; padding: 14px; border-radius: 30px; background: #344054; color: white; border: none; font-weight: 600; font-size: 1.05rem; margin-top: 20px; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(52, 64, 84, 0.2); }
+    .checkin-btn:hover { transform: translateY(-2px); background: #1d2939; box-shadow: 0 12px 25px rgba(52, 64, 84, 0.3); }
+    .checkin-btn.disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    .topic-card { padding: 30px 25px; }
+    .topic-card h3 { font-size: 1.25rem; font-weight: 800; color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .topic-card h3 i { color: #d4b58e; }
+
+    .topic-item { display: flex; align-items: center; padding: 12px 15px; color: #475569; text-decoration: none; border-radius: 12px; transition: all 0.3s; font-weight: 500; margin-bottom: 8px; }
+    .topic-item:hover { background: rgba(255,255,255,0.9); color: #d4b58e; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transform: translateX(5px); }
+
+    .expert-item { display: flex; align-items: center; gap: 15px; padding: 12px 0; text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.04); transition: all 0.3s; }
+    .expert-item:last-child { border-bottom: none; }
+    .expert-item:hover { transform: translateX(5px); }
+    .expert-item img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .expert-name { font-weight: 700; color: #2c3e50; font-size: 1.05rem; display: flex; align-items: center; gap: 5px; }
+    .expert-title { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+
+    /* 评论弹窗样式 */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal.active { display: flex; }
+    .modal-content { background: #ffffff; border-radius: 24px; position: relative; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
+    @keyframes slideUp { from { transform: translateY(40px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+    .close-btn { position: absolute; top: 25px; right: 25px; background: #f8fafc; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; font-size: 1.2rem; color: #64748b; cursor: pointer; transition: all 0.2s;}
+    .close-btn:hover { background: #e2e8f0; color: #0f172a; }
+
+    .form-control { width: 100%; padding: 15px 20px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 1rem; color: #2c3e50; transition: all 0.3s; background: #f8fafc; }
+    .form-control:focus { outline: none; border-color: #d4b58e; background: #ffffff; box-shadow: 0 0 0 4px rgba(212,181,142,0.1); }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="community-container">
+    <div class="main-feed">
+        {% if is_logged_in %}
+        <div class="glass-card post-composer">
+            <div class="composer-header">
+                {% set current_final_avatar = user_avatar or ('https://ui-avatars.com/api/?name=' ~ username ~ '&background=random&color=fff&size=100') %}
+                <div class="composer-avatar" style="background-image: url('{{ current_final_avatar }}');"></div>
+
+                <textarea id="composerContent" class="composer-input" placeholder="记录这一刻，分享你的改变与坚持..." rows="2" oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
+            </div>
+
+            <div id="mediaPreviewContainer" class="media-preview-container" style="display:none;">
+                <button class="remove-media-btn" onclick="clearMedia()" title="移除文件"><i class="bi bi-x"></i></button>
+                <img id="imagePreview" style="display:none;" alt="上传预览">
+                <video id="videoPreview" controls style="display:none;"></video>
+            </div>
+
+            <div class="composer-actions">
+                <div class="composer-tools">
+                    <label class="tool-btn" title="添加图片或短视频">
+                        <i class="bi bi-image"></i>
+                        <input type="file" id="composerMedia" accept="image/*,video/*" style="display:none;" onchange="previewMedia(this)">
+                    </label>
+                    <select id="composerTopic" class="topic-select">
+                        <option value=""># 添加话题标签</option>
+                        <option value="科学养生与恢复"># 科学养生与恢复</option>
+                        <option value="每日汗水打卡"># 每日汗水打卡</option>
+                        <option value="减脂期高效食谱"># 减脂期高效食谱</option>
+                        <option value="OOTD 运动穿搭"># OOTD 运动穿搭</option>
+                    </select>
+                </div>
+                <button class="publish-btn" onclick="submitRichPost()">发布动态</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="feed-tabs">
+            <a href="/community?tab=all" class="feed-tab {% if current_tab == 'all' %}active{% endif %}">发现全部</a>
+            <a href="/community?tab=health" class="feed-tab {% if current_tab == 'health' %}active{% endif %}">🌿 科学养生</a>
+            {% if is_logged_in %}
+            <a href="/community?tab=my" class="feed-tab {% if current_tab == 'my' %}active{% endif %}">我的足迹</a>
+            {% endif %}
+        </div>
+
+        {% if posts %}
+            {% for post in posts %}
+            <div class="glass-card post-box">
+                <div class="post-header">
+                    <a href="/user/{{ post.username }}" style="text-decoration: none; display: flex; align-items: center; gap: 15px;">
+
+                        {% set post_final_avatar = post.avatar_url or ('https://ui-avatars.com/api/?name=' ~ post.username ~ '&background=random&color=fff&size=100') %}
+                        <div class="post-avatar" style="background-image: url('{{ post_final_avatar }}'); background-size: cover;"></div>
+
+                        <div class="post-meta">
+                            <h4>
+                                {{ post.nickname or post.username }}
+                                {% if post.is_npc == 1 %}
+                                <i class="bi bi-patch-check-fill" style="color: #d4b58e; font-size: 1rem;" title="官方认证"></i>
+                                {% endif %}
+                            </h4>
+                            <span>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                    </a>
+                </div>
+
+                {% if post.topic %}
+                <div class="post-topic"><i class="bi bi-hash"></i> {{ post.topic }}</div>
+                {% endif %}
+
+                <div class="post-content">{{ post.content }}</div>
+
+                {% if post.image_url and post.image_url != '' and post.image_url != 'None' %}
+                    {% set ext = post.image_url.split('.')[-1] | lower %}
+                    {% if ext in ['mp4', 'webm', 'mov', 'avi'] %}
+                        <video src="{{ post.image_url }}" class="post-video" controls></video>
+                    {% else %}
+                        <img src="{{ post.image_url }}" class="post-image" alt="配图" onerror="this.style.display='none';">
+                    {% endif %}
+                {% endif %}
+
+                <div class="post-actions">
+                    <button class="action-btn" onclick="toggleLike({{ post.id }}, this)">
+                        <i class="bi bi-heart"></i> <span>{{ post.likes_count }}</span>
+                    </button>
+                    <button class="action-btn" onclick="openComments({{ post.id }})">
+                        <i class="bi bi-chat-text"></i> <span>{{ post.comments_count }}</span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="glass-card" style="text-align: center; padding: 80px 20px; color: #94a3b8;">
+                <i class="bi bi-wind" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 20px; display: block;"></i>
+                <h3 style="color: #475569; font-weight: 600; margin-bottom: 10px;">这里还是一片空白</h3>
+                <p>暂无相关动态，成为第一个分享灵感的人吧！</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="sidebar-right">
+        <div class="glass-card profile-card">
+            {% if is_logged_in %}
+                <div class="avatar-wrapper" onclick="document.getElementById('avatarUploadInput').click()" title="点击更换头像">
+                    <div class="avatar" id="userAvatarDisplay" style="background-image: url('{{ current_final_avatar }}');"></div>
+                    <div class="avatar-overlay"><i class="bi bi-camera-fill"></i></div>
+                </div>
+                <input type="file" id="avatarUploadInput" accept="image/*" style="display: none;">
+
+                <h3>{{ username }}</h3>
+                <p style="color: #94a3b8; font-size: 0.95rem; margin-top: 8px;">已坚持不懈 <strong style="color: #d4b58e; font-size: 1.1rem;">{{ checkin_info.streak_days }}</strong> 天</p>
+                {% if checkin_info.is_checked_today %}
+                    <button class="checkin-btn disabled"><i class="bi bi-check2-circle"></i> 今日已达成</button>
+                {% else %}
+                    <button class="checkin-btn" onclick="performCheckin()"><i class="bi bi-calendar-check"></i> 记录今天</button>
+                {% endif %}
+            {% else %}
+                <div class="avatar-wrapper">
+                    <div class="avatar"><i class="bi bi-person-slash"></i></div>
+                </div>
+                <h3 style="color: #94a3b8;">未登录访客</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 8px;">加入 ZENITH，开启改变</p>
+                <button class="checkin-btn" onclick="location.href='/login'"><i class="bi bi-box-arrow-in-right"></i> 立即登录</button>
+            {% endif %}
+        </div>
+
+        <div class="glass-card topic-card">
+            <h3><i class="bi bi-stars"></i> 灵感话题</h3>
+            <a href="/community?tab=health" class="topic-item">科学养生与恢复</a>
+            <a href="#" class="topic-item">每日汗水打卡</a>
+            <a href="#" class="topic-item">减脂期高效食谱</a>
+            <a href="#" class="topic-item">OOTD 运动穿搭</a>
+        </div>
+
+        <div class="glass-card topic-card">
+            <h3><i class="bi bi-award"></i> 驻场专家推荐</h3>
+            <a href="/user/npc_lina" class="expert-item">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" onerror="this.style.display='none';">
+                <div>
+                    <div class="expert-name">莉娜Lina_Fit <i class="bi bi-patch-check-fill" style="color: #d4b58e;"></i></div>
+                    <div class="expert-title">ACE 认证减脂塑形教练</div>
+                </div>
+            </a>
+            <a href="/user/npc_doctor_li" class="expert-item">
+                <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200&auto=format&fit=crop" onerror="this.style.display='none';">
+                <div>
+                    <div class="expert-name">李大夫讲养生 <i class="bi bi-patch-check-fill" style="color: #d4b58e;"></i></div>
+                    <div class="expert-title">三甲中医院康复医师</div>
+                </div>
+            </a>
+            <a href="/user/npc_iron_mike" class="expert-item">
+                <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=200&auto=format&fit=crop" onerror="this.style.display='none';">
+                <div>
+                    <div class="expert-name">钢铁麦克 <i class="bi bi-patch-check-fill" style="color: #d4b58e;"></i></div>
+                    <div class="expert-title">力量举国家级健将</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="commentsModal">
+    <div class="modal-content" style="width: 550px; height: 85vh; display: flex; flex-direction: column; padding: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 20px; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #2c3e50;">交流与讨论</h3>
+            <button onclick="closeCommentsModal()" class="close-btn" style="position: static;"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div id="commentsList" style="flex: 1; overflow-y: auto; padding-right: 15px; margin-bottom: 20px;"></div>
+
+        <div style="padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.05); display: flex; gap: 12px;">
+            <input type="hidden" id="currentPostId">
+            <input type="hidden" id="currentParentId" value="0">
+            <input type="text" id="commentInput" class="form-control" placeholder="善语结善缘..." style="border-radius: 30px; margin-bottom: 0;">
+            <button onclick="submitComment()" style="background: #344054; color: white; border: none; border-radius: 30px; padding: 0 25px; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap;" onmouseover="this.style.background='#1d2939'" onmouseout="this.style.background='#344054'">发送</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ================= 头像更换修复 =================
+    const avatarInput = document.getElementById('avatarUploadInput');
+    if(avatarInput) {
+        avatarInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // 1. 本地即时预览
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const avatarDisplay = document.getElementById('userAvatarDisplay');
+                avatarDisplay.innerHTML = '';
+                avatarDisplay.style.backgroundImage = `url(${event.target.result})`;
+            };
+            reader.readAsDataURL(file);
+
+            // 2. 将路由从错误的 `/api/user/avatar` 修改为与后端对应的 `/upload-avatar`
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            try {
+                const res = await fetch('/upload-avatar', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.code !== 0) {
+                    alert("头像上传失败: " + data.msg);
+                } else {
+                    // 添加自动刷新：解决动态区域头像与全局头像更新不同步问题
+                    location.reload();
+                }
+            } catch (err) {
+                console.error("上传错误", err);
+            }
+        });
+    }
+
+    // ================= 新版朋友圈式发帖逻辑 =================
+    let currentMediaFile = null;
+
+    function previewMedia(input) {
+        const file = input.files[0];
+        if (!file) return;
+        currentMediaFile = file;
+
+        const previewContainer = document.getElementById('mediaPreviewContainer');
+        const imgPreview = document.getElementById('imagePreview');
+        const vidPreview = document.getElementById('videoPreview');
+
+        previewContainer.style.display = 'block';
+        const url = URL.createObjectURL(file);
+
+        if (file.type.startsWith('video/')) {
+            imgPreview.style.display = 'none';
+            vidPreview.style.display = 'block';
+            vidPreview.src = url;
+        } else {
+            vidPreview.style.display = 'none';
+            imgPreview.style.display = 'block';
+            imgPreview.src = url;
+        }
+    }
+
+    function clearMedia() {
+        currentMediaFile = null;
+        document.getElementById('composerMedia').value = '';
+        document.getElementById('mediaPreviewContainer').style.display = 'none';
+        document.getElementById('imagePreview').src = '';
+        document.getElementById('videoPreview').src = '';
+    }
+
+    async function submitRichPost() {
+        const content = document.getElementById('composerContent').value.trim();
+        const topic = document.getElementById('composerTopic').value;
+
+        if (!content && !currentMediaFile) {
+            return alert('写点什么或者分享点图片/视频吧！');
+        }
+
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('topic', topic || ''); // 确保 topic 字段始终存在
+        if (currentMediaFile) {
+            formData.append('media', currentMediaFile); // 对应后端 create_post 里的 media 字段
+        }
+
+        const btn = document.querySelector('.publish-btn');
+        btn.innerText = '发送中...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/community/post', {
+                method: 'POST',
+                body: formData  // 不要设置 Content-Type，FormData 会自动处理
+            });
+            const data = await res.json();
+            if(data.code === 0) {
+                location.href = '/community?tab=all'; // 强制刷新到全部动态
+            } else {
+                alert(data.msg);
+                btn.innerText = '发布动态';
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert('网络异常，请稍后重试');
+            btn.disabled = false;
+        }
+    }
+
+    // ================= 打卡逻辑 =================
+    async function performCheckin() {
+        try {
+            const res = await fetch('/api/community/checkin', { method: 'POST' });
+            const data = await res.json();
+            if(data.code === 0) {
+                alert(`打卡成功！已连续打卡 ${data.streak} 天。`);
+                location.reload();
+            } else { alert(data.msg); }
+        } catch(err) { alert('网络错误'); }
+    }
+
+    // ================= 点赞与高级评论逻辑 =================
+    async function toggleLike(postId, btnElement) {
+        try {
+            const res = await fetch('/api/community/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ post_id: postId })
+            });
+            const data = await res.json();
+            if(data.code === 0) {
+                let icon = btnElement.querySelector('i');
+                let countSpan = btnElement.querySelector('span');
+                let count = parseInt(countSpan.innerText) || 0;
+
+                if(data.action === 'liked') {
+                    icon.className = 'bi bi-heart-fill';
+                    icon.style.color = '#ff2c55';
+                    btnElement.style.color = '#344054';
+                    countSpan.innerText = count + 1;
+                } else {
+                    icon.className = 'bi bi-heart';
+                    icon.style.color = '';
+                    btnElement.style.color = '';
+                    countSpan.innerText = count - 1;
+                }
+            } else {
+                if(data.msg === '请先登录') window.location.href = '/login';
+                else alert(data.msg);
+            }
+        } catch(err) { alert('网络错误'); }
+    }
+
+    async function openComments(postId) {
+        document.getElementById('currentPostId').value = postId;
+        document.getElementById('currentParentId').value = '0';
+        document.getElementById('commentInput').placeholder = "善语结善缘...";
+        document.getElementById('commentsModal').classList.add('active');
+
+        const listDiv = document.getElementById('commentsList');
+        listDiv.innerHTML = '<div style="text-align:center; padding: 40px; color:#94a3b8;"><i class="bi bi-hourglass-split" style="font-size: 2rem;"></i><br>加载中...</div>';
+
+        try {
+            const res = await fetch(`/api/community/comments/${postId}`);
+            const data = await res.json();
+
+            if (data.code === 0) {
+                if (data.data.length === 0) {
+                    listDiv.innerHTML = '<div style="text-align:center; padding: 60px 20px; color:#94a3b8;"><i class="bi bi-chat-square-dots" style="font-size: 2.5rem; color: #e2e8f0; margin-bottom:10px; display:block;"></i>暂无评论，成为第一个发言的人吧！</div>';
+                    return;
+                }
+
+                // 核心修改：为评论区的用户也换上全新极速头像引擎
+                listDiv.innerHTML = data.data.map(c => {
+                    const cAvatar = c.avatar_url || `https://ui-avatars.com/api/?name=${c.username}&background=random&color=fff&size=100`;
+                    return `
+                    <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-image: url('${cAvatar}'); background-size: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.05);">
+                        </div>
+                        <div style="flex: 1; background: #f8fafc; padding: 15px; border-radius: 4px 16px 16px 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-size: 0.95rem; color: #344054; font-weight: 700;">
+                                    ${c.nickname || c.username}
+                                    ${c.is_npc ? '<i class="bi bi-patch-check-fill" style="color: #d4b58e;"></i>' : ''}
+                                </span>
+                                <button onclick="likeComment(${c.id}, this)" style="background:none; border:none; color: ${c.is_liked ? '#ff2c55' : '#94a3b8'}; cursor: pointer; font-size: 0.95rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                                    <i class="bi ${c.is_liked ? 'bi-heart-fill' : 'bi-heart'}"></i> <span>${c.likes_count}</span>
+                                </button>
+                            </div>
+                            <div style="font-size: 1rem; color: #475569; line-height: 1.6;">
+                                ${c.parent_id !== 0 ? '<span style="color:#d4b58e; font-weight: 600;">回复: </span>' : ''}${c.content}
+                            </div>
+                            <div style="display: flex; gap: 15px; font-size: 0.85rem; color: #94a3b8; margin-top: 10px; align-items: center;">
+                                <span>${c.created_at}</span>
+                                <span style="cursor: pointer; font-weight: 600; color: #64748b; transition: color 0.2s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#64748b'" onclick="prepareReply(${c.id}, '${c.nickname || c.username}')">回复</span>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+            }
+        } catch (err) {
+            listDiv.innerHTML = '<div style="color:#ef4444; text-align:center; padding: 20px;">数据加载异常，请稍后重试。</div>';
+        }
+    }
+
+    function closeCommentsModal() { document.getElementById('commentsModal').classList.remove('active'); }
+
+    function prepareReply(commentId, nickname) {
+        document.getElementById('currentParentId').value = commentId;
+        const input = document.getElementById('commentInput');
+        input.placeholder = `回复 @${nickname} :`;
+        input.focus();
+    }
+
+    async function submitComment() {
+        const content = document.getElementById('commentInput').value.trim();
+        const postId = document.getElementById('currentPostId').value;
+        const parentId = document.getElementById('currentParentId').value;
+        if (!content) return alert('请输入内容');
+        try {
+            const res = await fetch('/api/community/comment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ post_id: postId, content: content, parent_id: parentId })
+            });
+            const data = await res.json();
+            if (data.code === 0) {
+                document.getElementById('commentInput').value = '';
+                openComments(postId);
+            } else {
+                if(data.msg === '请先登录') window.location.href = '/login';
+                else alert(data.msg);
+            }
+        } catch (err) { alert('网络错误'); }
+    }
+
+    async function likeComment(commentId, btnElement) {
+        try {
+            const res = await fetch('/api/community/comment/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comment_id: commentId })
+            });
+            const data = await res.json();
+            if (data.code === 0) {
+                let icon = btnElement.querySelector('i');
+                let countSpan = btnElement.querySelector('span');
+                let count = parseInt(countSpan.innerText) || 0;
+                if (data.action === 'liked') {
+                    btnElement.style.color = '#ff2c55';
+                    icon.className = 'bi bi-heart-fill';
+                    countSpan.innerText = count + 1;
+                } else {
+                    btnElement.style.color = '#94a3b8';
+                    icon.className = 'bi bi-heart';
+                    countSpan.innerText = count - 1;
+                }
+            } else if (data.msg === '请先登录') {
+                window.location.href = '/login';
+            }
+        } catch (err) { }
+    }
+</script>
+{% endblock %}

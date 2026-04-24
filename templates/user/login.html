@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Login - ZENITH FITNESS{% endblock %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* 沉浸式全屏布局，彻底遮挡原本的导航栏 */
+    .auth-page-wrapper {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        width: 100vw; height: 100vh;
+        display: flex; justify-content: center; align-items: center;
+        font-family: 'Montserrat', "Helvetica Neue", Arial, sans-serif;
+        background:
+            radial-gradient(circle at 15% 50%, rgba(79,172,254,0.12), transparent 30%),
+            radial-gradient(circle at 85% 30%, rgba(0,242,254,0.12), transparent 30%),
+            #f4f8fb;
+        z-index: 99999; /* 使用极高的 z-index 确保覆盖一切 */
+        overflow-y: auto;
+    }
+
+    .auth-page-wrapper::before {
+        content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px; z-index: -1; pointer-events: none;
+    }
+
+    .auth-container { width: 100%; max-width: 460px; padding: 20px; position: relative; margin: auto; }
+
+    .auth-container::before, .auth-container::after {
+        content: ''; position: absolute; width: 40px; height: 40px;
+        border: 1.5px solid rgba(79, 172, 254, 0.5); opacity: 0.6;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2; pointer-events: none;
+    }
+    .auth-container::before { top: 0; left: 0; border-right: none; border-bottom: none; }
+    .auth-container::after { bottom: 0; right: 0; border-left: none; border-top: none; }
+    .auth-container:hover::before, .auth-container:hover::after { opacity: 1; width: 60px; height: 60px; border-color: #4facfe; }
+
+    .auth-card {
+        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+        padding: 50px 40px; position: relative; z-index: 10;
+    }
+
+    .brand-header { text-align: center; margin-bottom: 40px; }
+    .brand-header h1 { font-size: 28px; font-weight: 700; letter-spacing: 6px; margin-bottom: 5px; color: #2c3e50; }
+    .brand-header p { font-size: 10px; font-weight: 600; letter-spacing: 5px; color: #4facfe; text-transform: uppercase; margin: 0; }
+    .brand-line { width: 1px; height: 30px; background-color: rgba(79, 172, 254, 0.3); margin: 20px auto 0; }
+    .form-title { font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #95a5a6; margin-bottom: 35px; text-align: center; }
+
+    .input-group { position: relative; margin-bottom: 35px; }
+    .input-group input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(0,0,0,0.1); color: #2c3e50; padding: 10px 0 10px 5px; font-size: 15px; font-family: 'Montserrat', sans-serif; font-weight: 500; outline: none; transition: all 0.3s ease; }
+    .input-group label { position: absolute; top: 10px; left: 5px; color: #95a5a6; font-size: 13px; letter-spacing: 1px; pointer-events: none; transition: all 0.3s ease; }
+    .input-group input:focus, .input-group input:not(:placeholder-shown) { border-bottom-color: #4facfe; }
+    .input-group input:focus ~ label, .input-group input:not(:placeholder-shown) ~ label { top: -18px; left: 0; font-size: 11px; color: #4facfe; letter-spacing: 2px; font-weight: 600; }
+
+    .password-toggle { position: absolute; right: 0; top: 5px; background: none; border: none; color: #95a5a6; cursor: pointer; font-size: 18px; transition: color 0.3s ease; }
+    .password-toggle:hover, .password-toggle.active { color: #4facfe; }
+
+    .btn-submit { width: 100%; background: transparent; color: #4facfe; border: 1px solid #4facfe; padding: 16px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: all 0.4s ease; margin-top: 10px; }
+    .btn-submit:hover { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #ffffff; border-color: transparent; box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3); transform: translateY(-2px); }
+
+    .auth-switch { text-align: center; margin-top: 30px; font-size: 12px; color: #95a5a6; }
+    .auth-switch a { color: #2c3e50; text-decoration: none; margin-left: 5px; font-weight: 600; transition: color 0.3s ease; border-bottom: 1px solid transparent; padding-bottom: 2px; }
+    .auth-switch a:hover { color: #4facfe; border-bottom-color: #4facfe; }
+
+    .error-msg { color: #e53e3e; font-size: 12px; margin-top: -20px; margin-bottom: 20px; text-align: center; background: #fff5f5; padding: 10px; border-radius: 4px; }
+    .success-msg { color: #38a169; font-size: 12px; margin-top: -20px; margin-bottom: 20px; text-align: center; background: #f0fff4; padding: 10px; border-radius: 4px; }
+
+    .back-home { position: absolute; top: 30px; left: 30px; color: #2c3e50; text-decoration: none; font-size: 24px; z-index: 10000; transition: color 0.3s ease; }
+    .back-home:hover { color: #4facfe; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    <a href="/" class="back-home" title="返回首页"><i class="bi bi-arrow-left-circle"></i></a>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="brand-header">
+                <h1>ZENITH</h1>
+                <p>Fitness Studio</p>
+                <div class="brand-line"></div>
+            </div>
+
+            <h3 class="form-title">Member Login</h3>
+
+            {% if error %} <div class="error-msg"><i class="bi bi-x-circle"></i> {{ error }}</div> {% endif %}
+            {% if success %} <div class="success-msg"><i class="bi bi-check-circle"></i> {{ success }}</div> {% endif %}
+
+            <form id="loginForm" action="/login" method="POST">
+                <input type="hidden" name="redirect" value="{{ redirect_url|default('/') }}">
+                <div class="input-group">
+                    <input type="text" id="username" name="username" placeholder=" " required maxlength="20">
+                    <label for="username">Username</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" placeholder=" " required>
+                    <label for="password">Password</label>
+                    <button type="button" class="password-toggle" id="passwordToggle"><i class="bi bi-eye"></i></button>
+                </div>
+                <button type="submit" class="btn-submit">Sign In</button>
+            </form>
+
+            <div class="auth-switch">
+                New Member? <a href="/register">Create Account</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('passwordToggle');
+    const loginForm = document.getElementById('loginForm');
+
+    passwordToggle.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('active');
+        this.querySelector('i').className = type === 'text' ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+
+    loginForm.addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('.btn-submit');
+        submitBtn.innerHTML = 'Authenticating...';
+        submitBtn.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+        submitBtn.style.color = 'white';
+        submitBtn.disabled = true;
+    });
+});
+</script>
+{% endblock %}

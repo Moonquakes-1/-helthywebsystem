@@ -1,0 +1,261 @@
+{% extends "tcm/tcm_base.html" %}
+
+{% block title %}中医体质辨识{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="text-center mb-4" style="color: #2e8b57;">
+        <i class="bi bi-clipboard2-pulse"></i> AI 九种体质辨识
+    </h2>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4 border-bottom pb-2">请根据近三个月的体验回答（27题完整版）</h5>
+                    <form id="constitutionForm">
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">1. 您容易疲乏、精神不振吗？ (气虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="气虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">2. 您说话声音容易低弱无力、气短吗？ (气虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="气虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">3. 您比别人更容易出虚汗吗（稍微活动就出汗）？ (气虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="气虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">4. 您经常感觉手脚发凉吗？ (阳虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="阳虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">5. 您的胃部、背部或腰膝部经常怕冷吗？ (阳虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="阳虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">6. 您吃凉的东西（或受凉）后容易拉肚子吗？ (阳虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="阳虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">7. 您容易感到口干咽燥、总想喝水吗？ (阴虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="阴虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">8. 您经常感觉手脚心发热吗？ (阴虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="阴虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">9. 您容易出现大便干燥、甚至便秘吗？ (阴虚)</label>
+                            <input type="range" class="form-range q-slider" data-type="阴虚质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">10. 您感觉身体沉重、不清爽、容易困倦吗？ (痰湿)</label>
+                            <input type="range" class="form-range q-slider" data-type="痰湿质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">11. 您的额头或鼻部经常出油很多吗？ (痰湿)</label>
+                            <input type="range" class="form-range q-slider" data-type="痰湿质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">12. 您经常感觉嘴里发黏、或者舌苔厚腻吗？ (痰湿)</label>
+                            <input type="range" class="form-range q-slider" data-type="痰湿质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">13. 您的面部或后背容易长痘痘或粉刺吗？ (湿热)</label>
+                            <input type="range" class="form-range q-slider" data-type="湿热质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">14. 您经常感觉口苦、或者有口臭吗？ (湿热)</label>
+                            <input type="range" class="form-range q-slider" data-type="湿热质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">15. 您的大便经常黏滞不爽（粘马桶）、小便发黄吗？ (湿热)</label>
+                            <input type="range" class="form-range q-slider" data-type="湿热质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">16. 您的皮肤容易在不知不觉中出现紫癜或淤青吗？ (血瘀)</label>
+                            <input type="range" class="form-range q-slider" data-type="血瘀质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">17. 您的嘴唇颜色经常偏暗或偏紫吗？ (血瘀)</label>
+                            <input type="range" class="form-range q-slider" data-type="血瘀质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">18. 您身体某些部位经常有不明原因的固定刺痛感吗？ (血瘀)</label>
+                            <input type="range" class="form-range q-slider" data-type="血瘀质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">19. 您容易感到情绪低落、闷闷不乐或多愁善感吗？ (气郁)</label>
+                            <input type="range" class="form-range q-slider" data-type="气郁质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">20. 您经常无缘无故地叹气吗？ (气郁)</label>
+                            <input type="range" class="form-range q-slider" data-type="气郁质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">21. 您容易失眠、入睡困难或睡眠很浅吗？ (气郁)</label>
+                            <input type="range" class="form-range q-slider" data-type="气郁质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">22. 您没有感冒时，也容易打喷嚏、鼻塞或流清涕吗？ (特禀)</label>
+                            <input type="range" class="form-range q-slider" data-type="特禀质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">23. 您的皮肤容易起荨麻疹（风团）吗？ (特禀)</label>
+                            <input type="range" class="form-range q-slider" data-type="特禀质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">24. 您的皮肤一抓就容易变红，并出现抓痕吗？ (特禀)</label>
+                            <input type="range" class="form-range q-slider" data-type="特禀质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">25. 您通常感觉精力充沛、不容易疲劳吗？ (平和)</label>
+                            <input type="range" class="form-range q-slider" data-type="平和质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">26. 您平时的睡眠质量很好、胃口也很正常吗？ (平和)</label>
+                            <input type="range" class="form-range q-slider" data-type="平和质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">27. 您的情绪通常比较稳定，对环境适应能力强吗？ (平和)</label>
+                            <input type="range" class="form-range q-slider" data-type="平和质" min="0" max="100" value="0">
+                            <div class="d-flex justify-content-between small text-muted"><span>完全没有</span><span>总是如此</span></div>
+                        </div>
+
+                        <button type="button" class="btn btn-success w-100 mt-4 py-2 fs-5" style="border-radius: 50px;" onclick="submitTest()">
+                            生成体质报告 <i class="bi bi-magic"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 sticky-top" style="border-radius: 16px; top: 20px; z-index: 1;">
+                <div class="card-body p-4 text-center">
+                    <h5 class="card-title mb-3 fw-bold">您的体质图谱</h5>
+                    <div id="radarChart" style="width: 100%; height: 350px;"></div>
+                    <div id="resultText" class="mt-3 d-none p-3 rounded bg-light">
+                        <h4 style="color: #2e8b57;">主集体质：<span id="mainConstitution" class="fw-bold"></span></h4>
+                        <p class="text-muted small mb-3">您的体质档案已同步至系统。系统将据此为您推荐专属药膳与健身计划。</p>
+                        <a href="/tcm" class="btn btn-success rounded-pill px-4">返回控制台</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    // 初始化雷达图
+    let myChart = echarts.init(document.getElementById('radarChart'));
+    let option = {
+        radar: {
+            indicator: [
+                { name: '平和质', max: 300 }, { name: '气虚质', max: 300 },
+                { name: '阳虚质', max: 300 }, { name: '阴虚质', max: 300 },
+                { name: '痰湿质', max: 300 }, { name: '湿热质', max: 300 },
+                { name: '血瘀质', max: 300 }, { name: '气郁质', max: 300 },
+                { name: '特禀质', max: 300 }
+            ],
+            shape: 'circle',
+            splitNumber: 4,
+            axisName: { color: '#2e8b57', fontWeight: 'bold' },
+            splitArea: { areaStyle: { color: ['rgba(46, 139, 87, 0.02)', 'rgba(46, 139, 87, 0.08)'] } }
+        },
+        series: [{
+            type: 'radar',
+            data: [{
+                value: [60,0,0,0,0,0,0,0,0], // 默认初始值
+                name: '得分',
+                areaStyle: { color: 'rgba(46, 139, 87, 0.4)' },
+                lineStyle: { color: '#2e8b57', width: 2 },
+                itemStyle: { color: '#2e8b57' }
+            }]
+        }]
+    };
+    myChart.setOption(option);
+
+    // 提交并更新图表
+    async function submitTest() {
+        const sliders = document.querySelectorAll('.q-slider');
+        // 由于每种体质有3道题，每题最高100分，总分是300分
+        let scores = {
+            '平和质': 60, '气虚质': 0, '阳虚质': 0, '阴虚质': 0,
+            '痰湿质': 0, '湿热质': 0, '血瘀质': 0, '气郁质': 0, '特禀质': 0
+        };
+
+        // 收集累加27道题的分数
+        sliders.forEach(slider => {
+            let type = slider.getAttribute('data-type');
+            scores[type] += parseInt(slider.value);
+        });
+
+        const dataValues = [
+            scores['平和质'], scores['气虚质'], scores['阳虚质'],
+            scores['阴虚质'], scores['痰湿质'], scores['湿热质'],
+            scores['血瘀质'], scores['气郁质'], scores['特禀质']
+        ];
+
+        try {
+            const res = await fetch('/tcm/constitution/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ scores: scores })
+            });
+            const result = await res.json();
+
+            if(result.code === 0) {
+                myChart.setOption({ series: [{ data: [{ value: dataValues }] }] });
+                document.getElementById('resultText').classList.remove('d-none');
+                document.getElementById('mainConstitution').innerText = result.main_constitution;
+
+                // 页面平滑滚动到顶部看结果
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        } catch (e) {
+            console.error(e);
+            alert("提交失败，请检查网络。");
+        }
+    }
+</script>
+{% endblock %}

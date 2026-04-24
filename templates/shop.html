@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}ZENITH 严选商城{% endblock %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #fcfaf8 0%, #f4efe6 100%);
+        min-height: 100vh;
+        color: #2c3e50;
+    }
+    .shop-header { text-align: center; padding: 60px 20px 30px; }
+    .shop-title { font-weight: 800; font-size: 2.5rem; color: #2c3e50; margin-bottom: 15px; letter-spacing: 1px; }
+    .shop-subtitle { color: #8c98a4; font-size: 1.1rem; margin-bottom: 30px; }
+
+    /* 搜索栏样式 */
+    .search-bar-container { max-width: 650px; margin: 0 auto 30px; position: relative; }
+    .search-input {
+        border: 2px solid rgba(212, 181, 142, 0.3);
+        border-radius: 50px;
+        padding: 15px 25px;
+        font-size: 1.05rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.03);
+        transition: all 0.3s;
+        background: rgba(255, 255, 255, 0.9);
+    }
+    .search-input:focus {
+        border-color: #d4b58e;
+        box-shadow: 0 8px 30px rgba(212, 181, 142, 0.2);
+        outline: none;
+    }
+    .search-btn {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        bottom: 8px;
+        border-radius: 40px;
+        padding: 0 30px;
+        background: linear-gradient(135deg, #e6a23c, #d4b58e);
+        color: white;
+        font-weight: 700;
+        border: none;
+        box-shadow: 0 4px 15px rgba(230, 162, 60, 0.3);
+        transition: transform 0.2s;
+    }
+    .search-btn:hover { transform: scale(1.03); color: white; }
+
+    /* 分类导航 */
+    .filter-nav {
+        display: inline-flex; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px);
+        padding: 6px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        margin-bottom: 40px; border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .filter-btn {
+        background: transparent; border: none; padding: 10px 25px; border-radius: 40px;
+        font-weight: 600; color: #5c6c7d; transition: all 0.3s ease;
+    }
+    .filter-btn.active { background: #ffffff; color: #d4b58e; box-shadow: 0 4px 12px rgba(212, 181, 142, 0.2); }
+
+    /* 商品卡片 */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding-bottom: 60px; }
+    .product-card {
+        background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,1);
+        border-radius: 20px; overflow: hidden; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03); position: relative;
+    }
+    .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(212, 181, 142, 0.15); }
+    .badge-top { position: absolute; top: 15px; left: 15px; background: linear-gradient(135deg, #e6a23c, #f3d19e); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; z-index: 2; }
+    .product-img-wrapper { height: 220px; background: #ffffff; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .product-img-wrapper img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.5s; }
+    .product-card:hover .product-img-wrapper img { transform: scale(1.08); }
+    .product-info { padding: 25px 20px; }
+    .product-name { font-size: 1.25rem; font-weight: 800; color: #2c3e50; margin-bottom: 8px; }
+    .product-desc { font-size: 0.9rem; color: #8c98a4; margin-bottom: 20px; line-height: 1.5; height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .product-footer { display: flex; justify-content: space-between; align-items: center; }
+    .product-price { font-size: 1.4rem; font-weight: 800; color: #e6a23c; }
+    .btn-add-cart { background: #f8f5f0; color: #2c3e50; border: 1px solid #eaeaea; padding: 8px 20px; border-radius: 30px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+    .btn-add-cart:hover { background: #2c3e50; color: #ffffff; border-color: #2c3e50; }
+    .empty-search { text-align: center; padding: 60px 20px; grid-column: 1 / -1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="shop-header">
+        <h1 class="shop-title"><i class="bi bi-bag-check" style="color: #d4b58e;"></i> ZENITH 严选商城</h1>
+        <p class="shop-subtitle">精选全球顶尖健身体系器材与专业临床级营养补剂。</p>
+
+        <div class="search-bar-container">
+            <form action="/shop" method="GET" class="d-flex w-100 position-relative">
+                <input type="text" name="keyword" class="form-control search-input w-100" placeholder="搜索补剂、器材名称或功效..." value="{{ keyword }}">
+                <button type="submit" class="btn search-btn"><i class="bi bi-search"></i> 检索</button>
+            </form>
+        </div>
+
+        {% if not keyword %}
+        <div class="filter-nav">
+            <button class="filter-btn active" onclick="filterItems('all')"><i class="bi bi-grid-fill"></i> 全部严选</button>
+            <button class="filter-btn" onclick="filterItems('supplement')"><i class="bi bi-capsule"></i> 专业补剂</button>
+            <button class="filter-btn" onclick="filterItems('equipment')"><i class="bi bi-bicycle"></i> 器械装备</button>
+        </div>
+        {% else %}
+        <div class="mb-4 text-start">
+            <h5 class="text-muted">包含 "<span class="text-dark fw-bold">{{ keyword }}</span>" 的搜索结果：</h5>
+            <a href="/shop" class="btn btn-sm btn-outline-secondary rounded-pill mt-2"><i class="bi bi-x"></i> 清除搜索</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="product-grid" id="productGrid">
+        {% set total_items = supplements_list|length + equipment_list|length %}
+
+        {% if total_items == 0 %}
+        <div class="empty-search">
+            <i class="bi bi-search" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 15px; display: block;"></i>
+            <h4 class="fw-bold" style="color: #475569;">未找到相关商品</h4>
+            <p class="text-muted">请尝试更换搜索词，如 "蛋白粉"、"哑铃" 等。</p>
+        </div>
+        {% endif %}
+
+        {% for item in supplements_list %}
+        <div class="product-card" data-type="supplement">
+            <div class="badge-top">TOP 优选</div>
+            <div class="product-img-wrapper">
+                <img src="{{ item.image_url | default('https://cdn-icons-png.flaticon.com/512/883/883803.png') }}" alt="{{ item.name }}" referrerpolicy="no-referrer">
+            </div>
+            <div class="product-info">
+                <div class="product-name">{{ item.name }}</div>
+                <div class="product-desc">{{ item.description }}</div>
+                <div class="product-footer">
+                    <div class="product-price">¥ {{ item.price }}</div>
+                    <button class="btn-add-cart" onclick="addToCart('{{ item.id }}', '{{ item.name }}', '{{ item.price }}', 'supplement', '{{ item.image_url }}')">
+                        <i class="bi bi-cart-plus"></i> 加入
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% for item in equipment_list %}
+        <div class="product-card" data-type="equipment">
+            <div class="product-img-wrapper">
+                <img src="{{ item.image_url | default('https://cdn-icons-png.flaticon.com/512/2964/2964514.png') }}" alt="{{ item.name }}" referrerpolicy="no-referrer">
+            </div>
+            <div class="product-info">
+                <div class="product-name">{{ item.name }}</div>
+                <div class="product-desc">{{ item.description | default('专业级健身器械，打造完美居家健身房。') }}</div>
+                <div class="product-footer">
+                    <div class="product-price">¥ {{ item.price }}</div>
+                    <button class="btn-add-cart" onclick="addToCart('{{ item.id }}', '{{ item.name }}', '{{ item.price }}', 'equipment', '{{ item.image_url }}')">
+                        <i class="bi bi-cart-plus"></i> 加入
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    function filterItems(type) {
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        const cards = document.querySelectorAll('.product-card');
+        cards.forEach(card => {
+            if (type === 'all' || card.dataset.type === type) {
+                card.style.display = 'block';
+                setTimeout(() => card.style.opacity = '1', 50);
+            } else {
+                card.style.opacity = '0';
+                setTimeout(() => card.style.display = 'none', 300);
+            }
+        });
+    }
+
+    function addToCart(id, name, price, type, image) {
+        fetch('/add-to-cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, name: name, price: price, type: type, image: image })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.code === 0) {
+                alert(`✅ 成功将【${name}】加入购物车！`);
+            } else {
+                alert(data.msg || '添加失败');
+            }
+        })
+        .catch(() => alert('网络请求失败'));
+    }
+</script>
+{% endblock %}

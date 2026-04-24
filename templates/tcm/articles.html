@@ -1,0 +1,68 @@
+{% extends "tcm/tcm_base.html" %}
+{% block title %}康养专栏 - 智慧健身系统{% endblock %}
+{% block page_title %}康养资讯专栏{% endblock %}
+
+{% block css %}
+<style>
+    .article-header { background: linear-gradient(135deg, #319795, #38b2ac); border-radius: 16px; padding: 40px; color: white; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;}
+    .category-tabs { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
+    .category-tab { padding: 8px 20px; border-radius: 20px; background: #fff; color: #4a5568; text-decoration: none; font-weight: bold; border: 1px solid #e2e8f0; transition: all 0.2s; white-space: nowrap;}
+    .category-tab:hover { background: #e6fffa; color: #319795; border-color: #319795; }
+    .category-tab.active { background: #319795; color: white; border-color: #319795; box-shadow: 0 4px 10px rgba(49,151,149,0.3); }
+
+    .article-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.3s; border: 1px solid #edf2f7; display: flex; flex-direction: column; height: 100%; text-decoration: none;}
+    .article-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(49,151,149,0.15); }
+    .article-img { width: 100%; height: 200px; object-fit: cover; }
+    .article-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .article-tag { display: inline-block; padding: 4px 10px; background: #e6fffa; color: #319795; border-radius: 6px; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; align-self: flex-start;}
+    .article-title { font-size: 1.2rem; font-weight: 800; color: #2d3748; margin-bottom: 10px; line-height: 1.4; }
+    .article-desc { color: #718096; font-size: 0.9rem; line-height: 1.6; margin-bottom: 15px; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;}
+    .article-footer { display: flex; justify-content: space-between; color: #a0aec0; font-size: 0.85rem; border-top: 1px solid #edf2f7; padding-top: 15px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="article-header">
+    <div>
+        <h2 style="font-weight: 800; margin-bottom: 10px;">探索健康智慧</h2>
+        <p style="margin: 0; opacity: 0.9;">涵盖膳食、运动与医疗的专业康养资讯</p>
+    </div>
+    <form class="d-flex" action="/tcm/articles" method="GET">
+        <input class="form-control me-2" type="search" name="keyword" value="{{ keyword }}" placeholder="搜索文章..." style="border-radius: 20px; border: none; width: 250px;">
+        <button class="btn btn-light" type="submit" style="border-radius: 20px; color: #319795; font-weight: bold;">搜索</button>
+    </form>
+</div>
+
+<div class="category-tabs">
+    <a href="/tcm/articles?category=全部" class="category-tab {% if current_category == '全部' %}active{% endif %}">全部</a>
+    <a href="/tcm/articles?category=膳食调理" class="category-tab {% if current_category == '膳食调理' %}active{% endif %}">膳食调理</a>
+    <a href="/tcm/articles?category=运动健身" class="category-tab {% if current_category == '运动健身' %}active{% endif %}">运动健身</a>
+    <a href="/tcm/articles?category=医疗理疗" class="category-tab {% if current_category == '医疗理疗' %}active{% endif %}">医疗理疗</a>
+</div>
+
+<div class="row g-4">
+    {% if articles %}
+        {% for article in articles %}
+        <div class="col-md-4">
+            <a href="/tcm/article/{{ article.id }}" class="article-card">
+                <img src="{{ article.cover_image }}" class="article-img" alt="封面" onerror="this.src='/static/images/default_bg.jpg'">
+                <div class="article-body">
+                    <span class="article-tag">{{ article.category }}</span>
+                    <h3 class="article-title">{{ article.title }}</h3>
+                    <p class="article-desc">{{ article.summary }}</p>
+                    <div class="article-footer">
+                        <span>{{ article.created_at.strftime('%Y-%m-%d') }}</span>
+                        <span><i class="bi bi-eye"></i> {{ article.views }} 阅读</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-journal-x" style="font-size: 3rem; color: #cbd5e0;"></i>
+            <p style="color: #718096; margin-top: 10px;">暂无相关文章</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

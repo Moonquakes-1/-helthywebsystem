@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}AI 专属训练计划 - 智慧健康系统{% endblock %}
+
+{% block css %}
+<style>
+    .plan-header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 40px 0; border-radius: 0 0 30px 30px; margin-top: -20px; box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3); }
+    .schedule-card { transition: transform 0.3s ease, box-shadow 0.3s ease; border-left: 5px solid #4facfe; }
+    .schedule-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="plan-header text-center mb-5">
+    <div class="container">
+        <h1 class="fw-bold"><i class="bi bi-robot"></i> AI 智能训练与饮食处方</h1>
+        <p class="fs-5 mt-3 opacity-75">基于您的身体数据与伤病史，动态计算生成</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div id="loadingBox" class="text-center py-5">
+        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status"></div>
+        <h4 class="mt-4 text-secondary">AI 教练正在为您计算计划...</h4>
+        <p class="text-muted">正在评估伤病风险并计算营养缺口</p>
+    </div>
+
+    <div id="planBox" style="display: none; animation: fadeIn 0.8s;">
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white border-0 shadow-sm h-100 rounded-4">
+                    <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
+                        <h6 class="opacity-75">当前 BMI 指数</h6>
+                        <h1 class="display-3 fw-bold mt-2 mb-3" id="bmiValue">--</h1>
+                        <div>
+                            <span class="badge bg-light text-primary fs-6 px-3 py-2 rounded-pill" id="goalBadge">目标: --</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card bg-white border-0 shadow-sm h-100 rounded-4">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold text-success mb-4"><i class="bi bi-cup-hot"></i> 智能饮食建议</h4>
+                        <div class="row h-100 align-items-center">
+                            <div class="col-sm-4 border-end text-center">
+                                <p class="text-muted mb-1">每日蛋白质建议摄入</p>
+                                <h2 class="text-dark fw-bold text-success" id="proteinGoal">--</h2>
+                            </div>
+                            <div class="col-sm-8 ps-4">
+                                <p class="mb-2"><strong class="text-dark">优质蛋白来源：</strong> <span id="foodExamples" class="text-muted">--</span></p>
+                                <div class="p-3 bg-light rounded-3 mt-3">
+                                    <p class="text-muted mb-0"><i class="bi bi-lightbulb text-warning"></i> <strong class="text-dark">核心策略：</strong><span id="dietTips">--</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="fw-bold mb-3 mt-5"><i class="bi bi-calendar2-week text-primary"></i> 本周训练排期</h3>
+
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4" id="injuryWarning" style="display: none;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-3 text-warning me-3"></i>
+                <div>
+                    <h6 class="alert-heading fw-bold mb-1">安全保护机制已激活</h6>
+                    <p class="mb-0">针对您的 <b><span id="injuryText" class="text-danger"></span></b> 旧伤，AI 已自动为您剔除了高风险动作（如深蹲/硬拉等），替换为安全动作。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4" id="scheduleContainer"></div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/generate-plan')
+    .then(res => res.json())
+    .then(res => {
+        if(res.code !== 0) {
+            alert(res.msg);
+            if(res.msg === '请先登录') window.location.href = '/login';
+            return;
+        }
+
+        const data = res.data;
+
+        // 渲染基础数据
+        document.getElementById('bmiValue').innerText = data.bmi;
+        document.getElementById('goalBadge').innerText = '目标: ' + data.goal;
+
+        // 渲染饮食
+        document.getElementById('proteinGoal').innerText = data.diet.protein_goal;
+        document.getElementById('foodExamples').innerText = data.diet.examples;
+        document.getElementById('dietTips').innerText = data.diet.tips;
+
+        // 伤病提示
+        if (data.injuries !== '无') {
+            document.getElementById('injuryWarning').style.display = 'block';
+            document.getElementById('injuryText').innerText = data.injuries;
+        }
+
+        // 渲染7天计划
+        const scheduleContainer = document.getElementById('scheduleContainer');
+        let html = '';
+        data.schedule.forEach(day => {
+            const isRest = day.type.includes('休息');
+            const bgClass = isRest ? 'bg-light border' : 'bg-white shadow-sm border-0';
+            const iconColor = isRest ? 'text-secondary' : 'text-primary';
+            const leftBorder = isRest ? 'border-left: 5px solid #a0aec0;' : '';
+
+            html += `
+            <div class="col-md-6 col-lg-4">
+                <div class="card ${bgClass} h-100 rounded-4 schedule-card" style="${leftBorder}">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">${day.day}</h5>
+                            <i class="bi ${day.icon} fs-4 ${iconColor}"></i>
+                        </div>
+                        <h6 class="text-dark fw-bold">${day.type}</h6>
+                        <p class="text-muted mb-0 mt-3" style="font-size: 0.95rem; line-height: 1.6;">${day.desc}</p>
+                    </div>
+                </div>
+            </div>`;
+        });
+        scheduleContainer.innerHTML = html;
+
+        // 隐藏动画，显示内容
+        setTimeout(() => {
+            document.getElementById('loadingBox').style.display = 'none';
+            document.getElementById('planBox').style.display = 'block';
+        }, 600); // 故意延迟600ms让用户看到AI在"计算"
+    })
+    .catch(err => {
+        document.getElementById('loadingBox').innerHTML = '<p class="text-danger"><i class="bi bi-x-circle"></i> 网络加载失败，请重试。</p>';
+    });
+});
+</script>
+{% endblock %}

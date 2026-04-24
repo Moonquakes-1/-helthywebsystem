@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}健身房地图 - ZENITH FITNESS{% endblock %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary: #10B981; /* 翡翠绿 */
+        --primary-hover: #059669;
+        --bg-grad: linear-gradient(135deg, #ECFEFF 0%, #F0FDF4 100%);
+        --card-bg: rgba(255, 255, 255, 0.85);
+        --text-main: #1E293B; --text-sub: #64748B; --input-bg: rgba(255, 255, 255, 0.9);
+        --radius-xl: 24px; --radius-lg: 16px;
+    }
+
+    body { background: var(--bg-grad) !important; font-family: 'Inter', sans-serif; padding-bottom: 60px; min-height: 100vh; }
+
+    .app-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+    .page-header { text-align: center; margin-bottom: 40px; }
+    .page-title { font-size: 36px; font-weight: 900; color: var(--text-main); margin-bottom: 10px; letter-spacing: -0.5px; }
+
+    /* 毛玻璃卡片基类 */
+    .glass-card {
+        background: var(--card-bg); border-radius: var(--radius-xl); padding: 35px;
+        margin-bottom: 30px; box-shadow: 0 12px 40px rgba(0,0,0,0.04);
+        border: 1px solid rgba(255,255,255,1); backdrop-filter: blur(20px);
+    }
+
+    /* 搜索栏区 */
+    .search-form-modern { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+    .form-group-modern { flex: 1; min-width: 250px; }
+    .form-label-modern { font-weight: 700; color: var(--text-sub); margin-bottom: 8px; font-size: 0.95rem; display: block; }
+    .input-modern {
+        width: 100%; padding: 16px 20px; background: #fff; border: 2px solid transparent;
+        border-radius: var(--radius-lg); font-size: 1rem; color: var(--text-main);
+        transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02); font-weight: 600;
+    }
+    .input-modern:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
+
+    .btn-search-modern {
+        padding: 16px 35px; border-radius: var(--radius-lg); font-weight: 800; font-size: 1rem;
+        border: none; background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: white; transition: 0.3s; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); height: 58px;
+    }
+    .btn-search-modern:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4); }
+
+    .btn-location { background: #0f172a; color: white; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2); }
+    .btn-location:hover { background: #000; box-shadow: 0 12px 25px rgba(15, 23, 42, 0.3); }
+
+    /* 地图区 */
+    .map-wrapper { padding: 20px; }
+    #map-container { width: 100%; height: 550px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
+
+    /* 结果列表区 */
+    .section-title { font-size: 22px; font-weight: 800; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+    .section-title i { color: var(--primary); }
+
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+    /* 场馆卡片 */
+    .result-item-modern {
+        background: #fff; border-radius: var(--radius-lg); padding: 25px;
+        border: 1px solid rgba(0,0,0,0.04); transition: 0.3s; display: flex; flex-direction: column;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02); cursor: pointer; position: relative; overflow: hidden;
+    }
+    .result-item-modern:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
+    .result-item-modern::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); opacity: 0; transition: 0.3s; }
+    .result-item-modern:hover::before { opacity: 1; }
+
+    .gym-distance { background: #ecfdf5; color: #059669; padding: 6px 14px; border-radius: 30px; font-weight: 800; font-size: 0.85rem; }
+    .nav-btn-outline { border: 2px solid #e2e8f0; background: transparent; color: var(--text-main); padding: 10px; border-radius: 30px; font-weight: 700; transition: 0.3s; width: 100%; margin-top: 15px; }
+    .nav-btn-outline:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    .empty-state { text-align: center; padding: 60px 20px; grid-column: 1 / -1; }
+
+    /* 弹窗与导航面板 */
+    .gym-detail-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+    .gym-detail-modal.active { display: flex; animation: fadeIn 0.3s; }
+    .modal-content-modern { background: #fff; border-radius: var(--radius-xl); max-width: 500px; width: 90%; padding: 40px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.15); text-align: center; }
+    .modal-close { position: absolute; top: 20px; right: 20px; background: #f1f5f9; color: #64748b; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+    .modal-close:hover { background: #e2e8f0; color: #0f172a; }
+
+    #nav-panel-container { display: none; background: #fff; border-radius: var(--radius-lg); padding: 25px; margin-bottom: 30px; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.1); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="page-header">
+        <h1 class="page-title">附近场馆探索</h1>
+        <p class="text-muted" style="font-size: 1.1rem;">精准定位周边顶级健身房，一键开启导航规划。</p>
+    </div>
+
+    <div class="glass-card">
+        <form class="search-form-modern" onsubmit="searchByLocation(); return false;">
+            <div class="form-group-modern">
+                <label class="form-label-modern" for="keyword">目标关键词</label>
+                <div class="position-relative">
+                    <i class="bi bi-search position-absolute text-muted" style="top: 18px; left: 20px; font-size: 1.1rem;"></i>
+                    <input type="text" class="input-modern" id="keyword" placeholder="如：乐刻、超级猩猩" style="padding-left: 50px;">
+                </div>
+            </div>
+            <div class="form-group-modern" style="min-width: 150px;">
+                <label class="form-label-modern" for="radius">搜索半径</label>
+                <select class="input-modern" id="radius">
+                    <option value="1000">1 公里内</option>
+                    <option value="3000" selected>3 公里内</option>
+                    <option value="5000">5 公里内</option>
+                    <option value="10000">10 公里内</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-search-modern"><i class="bi bi-radar me-1"></i> 扫描周边</button>
+            <button type="button" class="btn-search-modern btn-location" onclick="relocateUser()"><i class="bi bi-geo-alt-fill me-1"></i> 重新定位</button>
+        </form>
+    </div>
+
+    <div class="glass-card map-wrapper">
+        <div id="map-container"></div>
+    </div>
+
+    <div class="glass-card">
+        <h2 class="section-title"><i class="bi bi-geo-fill"></i> 侦测到的场馆</h2>
+
+        <div id="nav-panel-container">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+                <h4 class="fw-bold m-0" style="color: var(--primary);"><i class="bi bi-sign-turn-right-fill"></i> 路线指引</h4>
+                <button onclick="closeNavPanel()" class="btn btn-sm btn-outline-danger rounded-pill px-3">结束导航</button>
+            </div>
+            <div id="amap-nav-panel"></div>
+        </div>
+
+        <div class="results-grid" id="resultsList">
+            <div class="empty-state">
+                <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                <h4 class="fw-bold text-secondary">正在连接卫星获取您的精确坐标...</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="gym-detail-modal" id="gymDetailModal">
+    <div class="modal-content-modern">
+        <button class="modal-close" onclick="closeGymDetail()"><i class="bi bi-x-lg"></i></button>
+        <div style="width: 70px; height: 70px; background: #ecfdf5; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 20px;">
+            <i class="bi bi-building"></i>
+        </div>
+        <h2 id="gymDetailName" class="fw-bold text-dark mb-3"></h2>
+        <div class="text-start bg-light p-3 rounded-4 mb-4">
+            <p class="mb-2 text-muted"><i class="bi bi-geo-alt-fill text-danger me-2"></i><span id="gymDetailAddress"></span></p>
+            <p class="mb-2 text-muted"><i class="bi bi-telephone-fill text-primary me-2"></i><span id="gymDetailPhone"></span></p>
+            <p class="mb-0 text-muted"><i class="bi bi-signpost-2-fill text-success me-2"></i><span id="gymDetailDistance"></span></p>
+        </div>
+        <button class="btn-search-modern w-100" onclick="navigateToCurrentGym()">
+            <i class="bi bi-cursor-fill me-1"></i> 立即导航前往
+        </button>
+    </div>
+</div>
+
+<script>
+    let map, geocoder, markerClusterer, markers = [], currentGym = null, currentDriving = null, allGyms = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAMapScript();
+    });
+
+    function loadAMapScript() {
+        window._AMapSecurityConfig = { securityJsCode: 'e449b7fc4cac71da813b32eeec886fed' };
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://webapi.amap.com/maps?v=2.0&key=f7d302475dbfe4d55088ad411394b391&plugin=AMap.Geocoder,AMap.MarkerClusterer,AMap.Driving,AMap.Geolocation,AMap.PlaceSearch,AMap.CitySearch';
+        script.onload = initMap;
+        script.onerror = function() { document.getElementById('resultsList').innerHTML = '<div class="empty-state"><h3 style="color:red;">地图加载失败，请检查网络或密钥</h3></div>'; };
+        document.head.appendChild(script);
+    }
+
+    function initMap() {
+        map = new AMap.Map('map-container', { zoom: 14, resizeEnable: true });
+        geocoder = new AMap.Geocoder();
+        markerClusterer = new AMap.MarkerClusterer(map, [], { gridSize: 80, maxZoom: 18 });
+        getCurrentLocation();
+    }
+
+    function getCurrentLocation() {
+        document.getElementById('resultsList').innerHTML = '<div class="empty-state"><div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status"></div><h4 class="fw-bold text-secondary">正在获取精确定位...</h4></div>';
+
+        AMap.plugin('AMap.Geolocation', function() {
+            var geolocation = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 8000, zoomToAccuracy: true });
+            geolocation.getCurrentPosition(function(status, result) {
+                if (status === 'complete') {
+                    const lng = result.position.lng, lat = result.position.lat;
+                    markAndSearch(lng, lat, 3000, '');
+                } else {
+                    AMap.plugin('AMap.CitySearch', function () {
+                        var citySearch = new AMap.CitySearch();
+                        citySearch.getLocalCity(function (cityStatus, cityResult) {
+                            if (cityStatus === 'complete' && cityResult.info === 'OK') {
+                                geocoder.getLocation(cityResult.city, function(geoStatus, geoResult) {
+                                    if (geoStatus === 'complete' && geoResult.geocodes.length) {
+                                        const cLng = geoResult.geocodes[0].location.lng, cLat = geoResult.geocodes[0].location.lat;
+                                        markAndSearch(cLng, cLat, 5000, '');
+                                    }
+                                });
+                            } else {
+                                markAndSearch(116.397, 39.908, 5000, ''); // 兜底北京
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    }
+
+    function markAndSearch(lng, lat, radius, keyword) {
+        const loc = new AMap.LngLat(lng, lat);
+        map.setCenter(loc); map.setZoom(14);
+        new AMap.Marker({ position: loc, title: '我的位置', map: map, icon: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png', zIndex: 100 });
+        searchNearbyGyms(lng, lat, radius, keyword);
+    }
+
+    function searchByLocation() {
+        const keyword = document.getElementById('keyword').value, radius = document.getElementById('radius').value, center = map.getCenter();
+        searchNearbyGyms(center.getLng(), center.getLat(), radius, keyword);
+    }
+
+    function relocateUser() { getCurrentLocation(); }
+
+    function searchNearbyGyms(lng, lat, radius, keyword) {
+        document.getElementById('resultsList').innerHTML = '<div class="empty-state"><h4 class="fw-bold text-secondary"><i class="bi bi-search text-success"></i> 正在扫描周边场馆...</h4></div>';
+        const poi = new AMap.PlaceSearch({ pageSize: 20, pageIndex: 1, extensions: 'all' });
+        poi.searchNearBy(keyword || '健身房', new AMap.LngLat(lng, lat), parseInt(radius), function(status, result) {
+            if (status === 'complete' && result.info === 'OK' && result.poiList && result.poiList.pois) {
+                const pois = result.poiList.pois;
+                allGyms = pois.map((p, i) => ({
+                    id: i + 1, name: p.name, location: [p.location.getLng(), p.location.getLat()],
+                    address: p.address || '暂无地址', distance: p.distance ? Math.round(p.distance) + '米' : '未知',
+                    phone: p.tel || '暂无电话'
+                }));
+                renderResults(); addMarkers();
+            } else {
+                document.getElementById('resultsList').innerHTML = '<div class="empty-state"><i class="bi bi-emoji-frown text-muted" style="font-size:3rem;"></i><h4 class="mt-3 text-secondary">附近未找到场馆</h4><p>请尝试扩大搜索半径或更换关键词</p></div>';
+                if (markerClusterer) markerClusterer.clearMarkers();
+            }
+        });
+    }
+
+    // 核心渲染：将结果渲染为现代化的网格卡片
+    function renderResults() {
+        document.getElementById('resultsList').innerHTML = allGyms.map(gym => `
+            <div class="result-item-modern" onclick="showGymInfo(${gym.id})">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h4 class="fw-bold mb-0" style="color: #0f172a; font-size: 1.25rem;">${gym.name}</h4>
+                    <span class="gym-distance">${gym.distance}</span>
+                </div>
+                <p class="text-muted small mb-4 flex-grow-1" style="line-height: 1.5;">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> ${gym.address}
+                </p>
+                <div class="mt-auto">
+                    <button class="nav-btn-outline" onclick="event.stopPropagation(); navigateToGym(${gym.location[0]}, ${gym.location[1]})">
+                        <i class="bi bi-cursor-fill me-1"></i> 路线规划
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function addMarkers() {
+        if (markerClusterer) markerClusterer.clearMarkers();
+        markers = allGyms.map(gym => {
+            const marker = new AMap.Marker({ position: gym.location, title: gym.name });
+            marker.on('click', () => showGymInfo(gym.id));
+            return marker;
+        });
+        markerClusterer.setMarkers(markers);
+    }
+
+    function showGymInfo(id) {
+        currentGym = allGyms.find(g => g.id === id);
+        document.getElementById('gymDetailName').textContent = currentGym.name;
+        document.getElementById('gymDetailAddress').textContent = currentGym.address;
+        document.getElementById('gymDetailPhone').textContent = currentGym.phone || '暂无电话';
+        document.getElementById('gymDetailDistance').textContent = currentGym.distance;
+        document.getElementById('gymDetailModal').classList.add('active');
+    }
+
+    function closeGymDetail() { document.getElementById('gymDetailModal').classList.remove('active'); }
+
+    function navigateToCurrentGym() { closeGymDetail(); navigateToGym(currentGym.location[0], currentGym.location[1]); }
+
+    function navigateToGym(lng, lat) {
+        document.getElementById('nav-panel-container').style.display = 'block';
+        document.getElementById('nav-panel-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        AMap.plugin('AMap.Geolocation', function() {
+            var geo = new AMap.Geolocation();
+            geo.getCurrentPosition(function(status, result) {
+                if(status === 'complete') {
+                    if (currentDriving) currentDriving.clear();
+                    currentDriving = new AMap.Driving({ map: map, panel: "amap-nav-panel" });
+                    currentDriving.search(new AMap.LngLat(result.position.lng, result.position.lat), new AMap.LngLat(lng, lat));
+                } else alert('导航需要您的精确位置权限，否则无法为您规划路线。');
+            });
+        });
+    }
+
+    function closeNavPanel() {
+        document.getElementById('nav-panel-container').style.display = 'none';
+        if(currentDriving) currentDriving.clear();
+    }
+</script>
+{% endblock %}

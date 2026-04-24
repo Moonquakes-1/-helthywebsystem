@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+
+{% block title %}{{ supplement.name }} - 健身补剂详情 - 智慧健身系统{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 mb-4">
+            <a href="/supplements" class="btn btn-outline-primary rounded-pill px-4">
+                <i class="bi bi-arrow-left mr-2"></i> 返回补剂列表
+            </a>
+        </div>
+        
+        {% if supplement %}
+        <div class="col-12">
+            <!-- 产品信息卡片 -->
+            <div class="card shadow-lg rounded-lg overflow-hidden bg-white product-info-card">
+                <div class="row">
+                    <!-- 补剂图片 -->
+                    <div class="col-md-4">
+                        <div class="supplement-image-container p-4" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+                            <img src="{{ url_for('static', filename='images/supplements/' ~ supplement.image) }}" 
+                                 alt="{{ supplement.name }}" 
+                                 class="img-fluid max-h-full object-contain p-4" 
+                                 onerror="this.src='{{ url_for('static', filename='images/supplements/蛋白质补充剂.jpg') }}'; this.alt='补剂图片';">
+                            <!-- 图片指示器 -->
+                            <div class="image-gallery-indicator">
+                                <div class="indicator-dot active"></div>
+                                <div class="indicator-dot"></div>
+                                <div class="indicator-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 补剂信息 -->
+                    <div class="col-md-8">
+                        <div class="card-body p-6">
+                            <!-- 产品评分 -->
+                            <div class="product-rating mb-3">
+                                <div class="star-rating">
+                                    {% for i in range(5) %}
+                                    <i class="bi bi-star-fill"></i>
+                                    {% endfor %}
+                                </div>
+                                <span class="rating-count">4.8 (120 评价)</span>
+                            </div>
+                            
+                            <!-- 产品标题和类型 -->
+                            <h2 class="font-weight-bold text-primary mb-2">{{ supplement.name }}</h2>
+                            <span class="badge badge-primary mb-4">{{ supplement.type }}</span>
+                            
+                            <!-- 产品价格 -->
+                            <div class="mb-6">
+                                <div class="price-tag">
+                                    {{ supplement.price }}
+                                </div>
+                                <p class="text-muted mt-2">价格仅供参考，具体以实际购买时为准</p>
+                            </div>
+                            
+                            <!-- 产品描述 -->
+                            <div class="mb-6">
+                                <h5 class="font-weight-bold mb-3"><i class="bi bi-info-circle text-primary me-2"></i>产品描述</h5>
+                                <p class="text-muted">{{ supplement.description }}</p>
+                            </div>
+                            
+                            <!-- 主要功效 -->
+                            <div class="mb-6">
+                                <h5 class="font-weight-bold mb-3"><i class="bi bi-check-circle text-success me-2"></i>主要功效</h5>
+                                <div class="benefits-container">
+                                    {% for benefit in supplement.benefits %}
+                                    <span class="badge badge-success">
+                                        <i class="bi bi-plus-circle mr-1"></i>{{ benefit }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- 社交分享按钮 -->
+                            <div class="mb-6">
+                                <h5 class="font-weight-bold mb-3"><i class="bi bi-share-alt text-info me-2"></i>分享产品</h5>
+                                <div class="d-flex gap-2">
+                                    <button class="social-share-btn facebook" title="分享到Facebook">
+                                        <i class="bi bi-facebook"></i>
+                                    </button>
+                                    <button class="social-share-btn twitter" title="分享到Twitter">
+                                        <i class="bi bi-twitter"></i>
+                                    </button>
+                                    <button class="social-share-btn whatsapp" title="分享到WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 操作按钮 -->
+                            <div class="mt-8">
+                                <div class="btn-group btn-group-custom d-flex gap-3">
+                                    <button class="btn btn-success rounded-pill px-6 py-3 add-to-cart flex-grow-1" 
+                                            data-id="{{ supplement.id }}" 
+                                            data-name="{{ supplement.name }}" 
+                                            data-price="{{ supplement.price }}" 
+                                            data-type="supplement">
+                                        <i class="bi bi-cart-plus mr-2"></i> 加入购物车
+                                    </button>
+                                    <a href="/supplements" class="btn btn-outline-primary rounded-pill px-6 py-3">
+                                        <i class="bi bi-arrow-left mr-2"></i> 返回列表
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 详细介绍 -->
+            <div class="card shadow-lg rounded-lg overflow-hidden bg-white mt-6 detail-section">
+                <div class="card-header bg-primary text-white py-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h3 class="font-weight-bold mb-0">
+                            <i class="bi bi-book-open text-white me-2"></i>详细介绍
+                        </h3>
+                    </div>
+                </div>
+                <div class="card-body p-6">
+                    <div class="mb-6">
+                        <h5 class="font-weight-bold mb-3"><i class="bi bi-star text-primary me-2"></i>产品特点</h5>
+                        <div class="p-4 bg-light rounded-lg">
+                            <p class="text-muted">
+                                {% if supplement.get('details') and supplement.details.get('product_features') %}
+                                    {{ supplement.details.product_features }}
+                                {% else %}
+                                    该产品具有高品质成分，经过严格质量控制，有助于提升您的健身效果。
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h5 class="font-weight-bold mb-3"><i class="bi bi-clock-history text-success me-2"></i>使用建议</h5>
+                        <ul class="list-unstyled text-muted space-y-2 feature-list">
+                            {% if supplement.get('details') and supplement.details.get('usage_suggestions') %}
+                                {% for suggestion in supplement.details.usage_suggestions %}
+                                <li><i class="bi bi-check-circle text-success mr-2"></i> {{ suggestion }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li><i class="bi bi-check-circle text-success mr-2"></i> 按照产品包装上的说明使用</li>
+                                <li><i class="bi bi-check-circle text-success mr-2"></i> 建议在专业人士指导下使用</li>
+                                <li><i class="bi bi-check-circle text-success mr-2"></i> 配合合理饮食和规律锻炼</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h5 class="font-weight-bold mb-3"><i class="bi bi-people text-info me-2"></i>适用人群</h5>
+                        <ul class="list-unstyled text-muted space-y-2 feature-list">
+                            {% if supplement.get('details') and supplement.details.get('suitable_for') %}
+                                {% for people in supplement.details.suitable_for %}
+                                <li><i class="bi bi-check-circle text-info mr-2"></i> {{ people }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li><i class="bi bi-check-circle text-info mr-2"></i> 健身爱好者</li>
+                                <li><i class="bi bi-check-circle text-info mr-2"></i> 需要补充营养的运动人群</li>
+                                <li><i class="bi bi-check-circle text-info mr-2"></i> 追求健康生活方式的人群</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h5 class="font-weight-bold mb-3"><i class="bi bi-exclamation-triangle text-warning me-2"></i>注意事项</h5>
+                        <ul class="list-unstyled text-muted space-y-2 feature-list">
+                            {% if supplement.get('details') and supplement.details.get('precautions') %}
+                                {% for precaution in supplement.details.precautions %}
+                                <li><i class="bi bi-exclamation-circle text-warning mr-2"></i> {{ precaution }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li><i class="bi bi-exclamation-circle text-warning mr-2"></i> 请在使用前咨询专业医生或营养师</li>
+                                <li><i class="bi bi-exclamation-circle text-warning mr-2"></i> 不要超过推荐剂量</li>
+                                <li><i class="bi bi-exclamation-circle text-warning mr-2"></i> 请将产品放在儿童接触不到的地方</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 相关推荐 -->
+            <div class="card shadow-lg rounded-lg overflow-hidden bg-white mt-6 related-section">
+                <div class="card-header bg-info text-white py-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h3 class="font-weight-bold mb-0">
+                            <i class="bi bi-arrow-repeat text-white me-2"></i>相关推荐
+                        </h3>
+                    </div>
+                </div>
+                <div class="card-body p-6">
+                    <div class="row">
+                        {% if related_supplements %}
+                            {% for rel_supplement in related_supplements %}
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card related-card overflow-hidden scroll-animate">
+                                    <div class="related-supplement-image" style="height: 150px;">
+                                        <img src="{{ url_for('static', filename='images/supplements/' ~ rel_supplement.image) }}" 
+                                             alt="{{ rel_supplement.name }}" 
+                                             class="img-fluid w-100 h-100 object-cover" 
+                                             onerror="this.src='{{ url_for('static', filename='images/supplements/default.jpg') }}';">
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <h6 class="font-weight-bold text-primary mb-1">{{ rel_supplement.name }}</h6>
+                                        <p class="text-success font-bold mb-3">{{ rel_supplement.price }}</p>
+                                        <a href="/supplements/{{ rel_supplement.id }}" class="btn btn-primary btn-sm rounded-pill w-100 hover:shadow-md transition-all duration-300">
+                                            <i class="bi bi-eye me-1"></i> 查看详情
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-center text-muted py-8">
+                                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                                <p class="mt-3">暂无相关推荐</p>
+                                <a href="/supplements" class="btn btn-primary mt-3">
+                                    <i class="bi bi-arrow-right"></i> 查看更多补剂
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-10">
+            <div class="alert alert-warning rounded-lg p-5">
+                <i class="bi bi-exclamation-triangle text-warning mr-2"></i>
+                <span>未找到指定的健身补剂信息</span>
+            </div>
+            <a href="/supplements" class="btn btn-primary rounded-pill px-6 py-2 mt-3">
+                返回补剂列表
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 自定义动画 */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    
+    /* 页面标题区域样式 */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 2rem 0;
+        border-radius: 0 0 1rem 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* 补剂图片容器样式 */
+    .supplement-image-container {
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(255, 255, 255, 0.5) 100%);
+        border-radius: 1rem;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .supplement-image-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+        transition: opacity 0.3s ease;
+        opacity: 0;
+        z-index: 1;
+    }
+    
+    .supplement-image-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .supplement-image-container:hover::before {
+        opacity: 1;
+    }
+    
+    .supplement-image-container img {
+        transition: all 0.4s ease;
+        z-index: 0;
+        position: relative;
+    }
+    
+    .supplement-image-container:hover img {
+        transform: scale(1.1);
+    }
+    
+    /* 产品信息卡片样式 */
+    .product-info-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    /* 价格标签样式 */
+    .price-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        font-weight: bold;
+        font-size: 1.8rem;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .price-tag:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    /* 功效标签容器样式 */
+    .benefits-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .benefits-container .badge {
+        background: linear-gradient(135deg, #6f42c1 0%, #868e96 100%);
+        color: white;
+        font-weight: normal;
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    
+    .benefits-container .badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+        background: linear-gradient(135deg, #868e96 0%, #6f42c1 100%);
+    }
+    
+    /* 按钮样式增强 */
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        border: none;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    /* 详细介绍卡片样式 */
+    .detail-section {
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+    
+    /* 相关推荐卡片样式 */
+    .related-section {
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+    
+    /* 相关推荐图片样式 */
+    .related-supplement-image {
+        transition: all 0.4s ease;
+        overflow: hidden;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .related-supplement-image img {
+        transition: all 0.4s ease;
+    }
+    
+    .related-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .related-card:hover .related-supplement-image img {
+        transform: scale(1.15);
+    }
+    
+    /* 列表项样式 */
+    .feature-list li {
+        transition: all 0.3s ease;
+        padding: 0.5rem 0;
+        border-left: 3px solid transparent;
+        padding-left: 0.5rem;
+    }
+    
+    .feature-list li:hover {
+        transform: translateX(10px);
+        border-left-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.05);
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+    
+    /* 标签样式 */
+    .badge-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        font-weight: bold;
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+    }
+    
+    /* 社交分享按钮样式 */
+    .social-share-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        color: #495057;
+    }
+    
+    .social-share-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+    
+    .social-share-btn.facebook:hover {
+        background: #1877f2;
+        border-color: #1877f2;
+    }
+    
+    .social-share-btn.twitter:hover {
+        background: #1da1f2;
+        border-color: #1da1f2;
+    }
+    
+    .social-share-btn.whatsapp:hover {
+        background: #25d366;
+        border-color: #25d366;
+    }
+    
+    /* 图片画廊指示器 */
+    .image-gallery-indicator {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 0.5rem;
+        z-index: 2;
+    }
+    
+    .indicator-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .indicator-dot.active {
+        background: white;
+        width: 30px;
+        border-radius: 6px;
+    }
+    
+    /* 产品评分样式 */
+    .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .star-rating {
+        color: #ffc107;
+    }
+    
+    .rating-count {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    /* 卡片阴影效果 */
+    .card {
+        transition: all 0.3s ease;
+        border: none;
+    }
+    
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* 响应式设计优化 */
+    @media (max-width: 768px) {
+        .supplement-image-container {
+            height: 300px !important;
+        }
+        
+        .price-tag {
+            font-size: 1.5rem;
+        }
+        
+        .related-card {
+            margin-bottom: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .supplement-image-container {
+            height: 250px !important;
+        }
+        
+        .btn-group-custom {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .btn-group-custom .btn {
+            width: 100%;
+        }
+    }
+    
+    /* 滚动动画触发类 */
+    .scroll-animate {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    
+    .scroll-animate.animated {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 预加载图片以提高用户体验
+        const preloadImages = () => {
+            const images = document.querySelectorAll('.supplement-image-container img, .related-supplement-image img');
+            images.forEach(img => {
+                const src = img.src;
+                const newImg = new Image();
+                newImg.src = src;
+            });
+        };
+        
+        // 图片切换功能
+        const setupImageGallery = () => {
+            const dots = document.querySelectorAll('.indicator-dot');
+            const image = document.querySelector('.supplement-image-container img');
+            
+            if (!dots.length || !image) return;
+            
+            let currentIndex = 0;
+            const images = [
+                image.src, // 当前图片
+                image.src, // 预留位置，可以替换为实际的多张图片
+                image.src  // 预留位置，可以替换为实际的多张图片
+            ];
+            
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    currentIndex = index;
+                    // 切换图片（实际应用中可以替换为不同图片）
+                    image.src = images[index];
+                    
+                    // 更新指示器
+                    dots.forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                    
+                    // 添加淡入效果
+                    image.style.opacity = '0';
+                    setTimeout(() => {
+                        image.style.opacity = '1';
+                    }, 100);
+                });
+            });
+        };
+        
+        // 滚动动画效果
+        const setupScrollAnimations = () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animated');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            document.querySelectorAll('.scroll-animate').forEach(el => {
+                observer.observe(el);
+            });
+        };
+        
+        // 社交分享功能
+        const setupSocialSharing = () => {
+            const shareButtons = document.querySelectorAll('.social-share-btn');
+            const productName = '{{ supplement.name }}';
+            const productUrl = window.location.href;
+            
+            shareButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    let shareUrl = '';
+                    const platform = btn.classList[1];
+                    
+                    switch(platform) {
+                        case 'facebook':
+                            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`;
+                            break;
+                        case 'twitter':
+                            shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(productUrl)}&text=${encodeURIComponent(`推荐一款很棒的健身补剂：${productName}`)}`;
+                            break;
+                        case 'whatsapp':
+                            shareUrl = `https://wa.me/?text=${encodeURIComponent(`${productName} - ${productUrl}`)}`;
+                            break;
+                    }
+                    
+                    if (shareUrl) {
+                        window.open(shareUrl, '_blank', 'width=600,height=400');
+                    }
+                });
+            });
+        };
+        
+        // 产品卡片悬停效果增强
+        const setupCardHoverEffects = () => {
+            const cards = document.querySelectorAll('.related-card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-5px)';
+                    card.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.2)';
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                    card.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+                });
+            });
+        };
+        
+        // 加入购物车动画效果 - 使用common.js中的统一实现
+        // 此处不再重复实现，避免与common.js中的initAddToCart函数冲突
+        
+        
+        // 初始化所有功能
+        preloadImages();
+        setupImageGallery();
+        setupScrollAnimations();
+        setupSocialSharing();
+        setupCardHoverEffects();
+        setupAddToCartAnimation();
+        
+        // 页面加载完成后的动画
+        document.body.style.opacity = '0';
+        setTimeout(() => {
+            document.body.style.transition = 'opacity 0.5s ease';
+            document.body.style.opacity = '1';
+        }, 100);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "tcm/tcm_base.html" %}
+
+{% block title %}中药材查询{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h2 class="mb-4" style="color: #8B4513;">
+        <i class="bi bi-flower3 me-2"></i>中药材查询
+    </h2>
+    
+    <div class="card tcm-card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" id="searchHerb" placeholder="输入药材名称或症状进行搜索...">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">全部类别</option>
+                        <option value="补气药">补气药</option>
+                        <option value="补血药">补血药</option>
+                        <option value="补阴药">补阴药</option>
+                        <option value="理气药">理气药</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn tcm-btn text-white w-100" onclick="searchHerbs()">
+                        <i class="bi bi-search me-2"></i>搜索
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        {% for herb in herbs %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card tcm-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="card-title">{{ herb.name }}</h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleFavorite(this)">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+                    <span class="badge bg-secondary mb-2">{{ herb.category }}</span>
+                    <p class="text-muted mb-2"><strong>性味：</strong>{{ herb.taste }}</p>
+                    <p class="text-muted mb-2"><strong>归经：</strong>{{ herb.meridian }}</p>
+                    <p class="card-text"><strong>功效：</strong>{{ herb.effect }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    function searchHerbs() {
+        alert('搜索功能');
+    }
+    
+    function toggleFavorite(btn) {
+        const icon = btn.querySelector('i');
+        if (icon.classList.contains('bi-heart')) {
+            icon.classList.replace('bi-heart', 'bi-heart-fill');
+            btn.classList.replace('btn-outline-secondary', 'btn-danger');
+        } else {
+            icon.classList.replace('bi-heart-fill', 'bi-heart');
+            btn.classList.replace('btn-danger', 'btn-outline-secondary');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends "tcm/tcm_base.html" %}
+
+{% block title %}药食同源商城{% endblock %}
+
+{% block css %}
+<style>
+
+    .product-card {
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        border: 1px solid #eee;
+        background: #fff;
+    }
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    }
+    .img-wrapper {
+        height: 220px;
+        overflow: hidden;
+        position: relative;
+        background-color: #f8f9fa; /* 占位背景色 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .product-card:hover .product-img {
+        transform: scale(1.05);
+    }
+    /* 图片失效时的文字占位符样式 */
+    .img-fallback-text {
+        font-size: 3rem;
+        font-weight: bold;
+        color: rgba(255,255,255,0.8);
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .ai-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(135deg, #ff4757, #ff6b81);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
+        z-index: 10;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .category-btn {
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .category-btn.active {
+        background-color: #2e8b57;
+        color: white;
+        border-color: #2e8b57;
+    }
+    .search-box {
+        border-radius: 50px;
+        padding-left: 20px;
+        border: 2px solid #e9ecef;
+    }
+    .search-box:focus {
+        border-color: #2e8b57;
+        box-shadow: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="row mb-4 align-items-center">
+        <div class="col-lg-8 mb-3 mb-lg-0">
+            <div class="d-flex flex-wrap gap-2">
+                {% for cat in categories %}
+                <a href="/tcm/store?category={{ cat }}&keyword={{ keyword }}"
+                   class="btn btn-outline-success category-btn {% if current_category == cat %}active{% endif %}">
+                    {{ cat }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <form action="/tcm/store" method="GET" class="d-flex">
+                <input type="hidden" name="category" value="全部">
+                <div class="input-group">
+                    <input type="text" name="keyword" class="form-control search-box" placeholder="搜索药食名字、功效、分类..." value="{{ keyword }}">
+                    <button class="btn btn-success" type="submit" style="border-top-right-radius: 50px; border-bottom-right-radius: 50px; padding: 0 20px;">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if constitution != '尚未评测' and current_category == '全部' and not keyword %}
+    <div class="card border-0 mb-5 text-white overflow-hidden" style="background: linear-gradient(135deg, #2e8b57 0%, #1e5c3a 100%); border-radius: 24px; box-shadow: 0 10px 30px rgba(46,139,87,0.3);">
+        <div class="card-body p-4 p-md-5 d-flex align-items-center position-relative">
+            <i class="bi bi-bag-heart position-absolute" style="font-size: 15rem; opacity: 0.05; right: -20px; bottom: -50px;"></i>
+            <div class="me-4 d-none d-md-block z-1">
+                <i class="bi bi-robot" style="font-size: 4rem; text-shadow: 0 4px 10px rgba(0,0,0,0.2);"></i>
+            </div>
+            <div class="z-1">
+                <h2 class="fw-bold mb-3">AI 专属食疗推荐</h2>
+                <p class="mb-0 fs-5">检测到您的核心体质为 <span class="badge bg-warning text-dark fs-5 mx-1">{{ constitution }}</span><br>
+                系统已为您甄选出最匹配的药膳佳品，内调外养效果翻倍。</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% macro render_product(item, is_recommended=False) %}
+    <div class="card product-card h-100">
+        <div class="img-wrapper" style="background: linear-gradient(135deg, #{{ ['a1c4fd','ff9a9e','fbc2eb','84fab0','fccb90'] | random }} 0%, #{{ ['c2e9fb','fecfef','a18cd1','8fd3f4','d57eeb'] | random }} 100%);">
+            {% if is_recommended and constitution != '尚未评测' %}
+            <div class="ai-badge"><i class="bi bi-magic"></i> 体质适配</div>
+            {% endif %}
+
+            {% if item.image %}
+                <img src="{{ item.image }}" class="product-img" alt="{{ item.name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="img-fallback-text" style="display: none;">{{ item.name[:2] }}</span>
+            {% else %}
+                <span class="img-fallback-text">{{ item.name[:2] }}</span>
+            {% endif %}
+        </div>
+
+        <div class="card-body d-flex flex-column p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="card-title fw-bold text-dark mb-0">{{ item.name }}</h5>
+                <span class="badge bg-light text-secondary border">{{ item.category }}</span>
+            </div>
+            <p class="card-text text-muted small flex-grow-1 mt-2" style="line-height: 1.6;">{{ item.description }}</p>
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                <span class="fs-4 fw-bold text-danger">¥{{ item.price }}</span>
+                <button class="btn btn-success rounded-pill px-4 add-to-cart-btn"
+                          data-id="{{ item.id }}"
+                          data-name="{{ item.name }}"
+                          data-price="{{ item.price }}"
+                          data-image="{{ item.image }}">
+                      <i class="bi bi-cart-plus"></i>
+                </button>
+
+            </div>
+        </div>
+    </div>
+    {% endmacro %}
+
+    {% if recommended_products %}
+    <div class="d-flex align-items-center mb-4">
+        <h4 class="fw-bold mb-0" style="color: #2e8b57;"><i class="bi bi-star-fill text-warning me-2"></i> 为您甄选</h4>
+    </div>
+    <div class="row mb-5">
+        {% for item in recommended_products %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            {{ render_product(item, True) }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if other_products %}
+        {% if current_category == '全部' and not keyword %}
+        <h4 class="fw-bold mb-4 mt-5 text-secondary"><i class="bi bi-shop me-2"></i> 全部养生优品</h4>
+        {% endif %}
+
+        <div class="row">
+            {% for item in other_products %}
+            <div class="col-md-6 col-lg-3 mb-4">
+                {{ render_product(item, False) }}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        {% if not recommended_products %}
+        <div class="text-center py-5">
+            <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+            <h5 class="mt-3 text-muted">抱歉，没有找到相关商品</h5>
+            <p class="text-muted small">请尝试更换分类或搜索关键词</p>
+            <a href="/tcm/store" class="btn btn-outline-success rounded-pill mt-2">返回全部商品</a>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // 获取商品数据，添加 tcm_ 前缀防止与健身器材ID冲突
+            const productData = {
+                id: 'tcm_' + this.dataset.id,
+                name: this.dataset.name,
+                price: this.dataset.price,
+                image: this.dataset.image, // 👈 就是这里！加上这行代码把图片传给后端
+                type: 'tcm_product'
+            };
+
+            // 调用 app.py 中已有的添加购物车接口
+            fetch('/add-to-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(productData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.code === 0) {
+                    // 更新左侧导航栏的购物车角标
+                    const badge = document.getElementById('cart-badge');
+                    if(badge) {
+                        badge.innerText = data.count;
+                        badge.style.display = 'inline-block';
+                    }
+                    alert('商品已成功加入购物车！');
+                } else {
+                    alert('添加失败: ' + data.msg);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('网络请求出错，请稍后再试');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - 智慧健身系统{% endblock %}
+
+{% block css %}
+<style>
+    /* 强制解除全屏锁定，让这个页面可以正常上下滚动 */
+    html, body {
+        overflow-y: auto !important;
+        background: #f8f9fa !important;
+    }
+
+    /* 强制修好导航栏，保持深色高级感 */
+    header.header, .header {
+        background: rgba(15, 23, 42, 0.95) !important;
+        position: fixed !important;
+        top: 0 !important; left: 0 !important; width: 100% !important; z-index: 9999 !important;
+    }
+    header.header .navbar-brand, header.header .nav-link, header.header .user-name, header.header a.text-dark {
+        color: #f8fafc !important;
+    }
+
+    .info-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 150px 0 80px 0;
+        text-align: center;
+        color: white;
+    }
+    .info-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+    }
+    .info-content-box {
+        background: white;
+        max-width: 900px;
+        margin: -40px auto 100px auto;
+        padding: 60px;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        min-height: 400px;
+        line-height: 1.8;
+        color: #475569;
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="info-header">
+        <div class="container">
+            <h1 class="info-title">{{ title }}</h1>
+            <p style="color: #94a3b8; font-size: 1.1rem;">ZENITH FITNESS 官方声明与资讯</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="info-content-box">
+            <h3 style="color: #0f172a; font-weight: 700; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">{{ title }}</h3>
+
+            <p style="white-space: pre-wrap;">{{ content }}</p>
+
+            <hr style="margin: 60px 0 30px 0; border-color: #e2e8f0;">
+            <p style="text-align: center; font-size: 0.9rem; color: #94a3b8;">
+                如果您有更多疑问或需要合作，请联系 <a href="mailto:service@zenith.com" style="color: #0284c7;">service@zenith.com</a>
+            </p>
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="/" class="btn btn-outline-primary" style="border-radius: 30px; padding: 10px 30px; border-color: #0284c7; color: #0284c7;">返回平台首页</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

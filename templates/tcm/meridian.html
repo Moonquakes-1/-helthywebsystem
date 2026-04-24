@@ -1,0 +1,173 @@
+{% extends "tcm/tcm_base.html" %}
+
+{% block title %}子午流注时钟 - 智慧健康系统{% endblock %}
+
+{% block css %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+    .meridian-header {
+        background: linear-gradient(135deg, #1e5c3a 0%, #0d3b22 100%);
+        color: #f8dbb0;
+        padding: 40px 0;
+        border-radius: 0 0 30px 30px;
+        margin-top: -20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .current-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fdfa 100%);
+        border-left: 6px solid #2e8b57;
+        border-radius: 16px;
+        box-shadow: 0 10px 20px rgba(46,139,87,0.08);
+    }
+    .time-badge {
+        background-color: #2e8b57;
+        color: white;
+        padding: 8px 20px;
+        font-size: 1.2rem;
+        border-radius: 30px;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
+    .meridian-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #1e5c3a;
+        margin: 15px 0;
+    }
+    .advice-list li {
+        margin-bottom: 12px;
+        font-size: 1.1rem;
+        color: #555;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="meridian-header text-center mb-5">
+    <div class="container">
+        <h1 class="fw-bold" style="letter-spacing: 4px;"><i class="bi bi-clock-history"></i> 子午流注 · 经络时钟</h1>
+        <p class="fs-5 mt-3 opacity-75">顺应天时，因时养生。系统已为您同步当前时辰状态。</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row align-items-center">
+        <div class="col-lg-6 mb-5 mb-lg-0">
+            <div class="card border-0 bg-transparent">
+                <div class="card-body p-0 d-flex justify-content-center">
+                    <div id="meridianChart" style="width: 100%; height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="current-card p-4 p-md-5 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted"><i class="bi bi-geo-alt"></i> 本地系统时间</span>
+                    <span class="fs-5 fw-bold text-dark" id="realTimeDisplay">--:--:--</span>
+                </div>
+
+                <span class="time-badge" id="shichenBadge">{{ meridian.name }} ({{ '%02d:00' % meridian.hours[0] }}-{{ '%02d:00' % (meridian.hours[-1] + 1 if meridian.hours[-1] != 23 else 1) }})</span>
+                <h2 class="meridian-title" id="jingmaiTitle">{{ meridian.meridian }} 当令</h2>
+                <p class="text-muted border-bottom pb-3 mb-4" id="shichenDesc">{{ meridian.desc }}</p>
+
+                <h5 class="fw-bold text-success mb-3"><i class="bi bi-heart-pulse"></i> 此时辰当令建议：</h5>
+                <ul class="advice-list list-unstyled" id="adviceList">
+                    <li><i class="bi bi-check2-circle text-success me-2"></i>{{ meridian.advice }}</li>
+                </ul>
+
+                <div class="mt-4 d-flex gap-3">
+                    <a href="{{ meridian.link_url }}" class="btn btn-outline-success rounded-pill px-4">
+                        <i class="bi bi-play-circle me-1"></i> {{ meridian.link_text }}
+                    </a>
+                    <a href="/tcm/store?keyword={{ meridian.shop_item }}" class="btn btn-success rounded-pill px-4">
+                        <i class="bi bi-bag-heart me-1"></i> 推荐调理: {{ meridian.shop_item }}
+                    </a>
+                </div>
+
+                <div class="mt-5 p-3 rounded" style="background-color: rgba(46,139,87,0.1);">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-info-circle-fill text-success mt-1 me-2"></i>
+                        <p class="mb-0 small text-muted"><strong>子午流注</strong>是中医圣典《黄帝内经》揭示的十二经脉气血运行规律。十二时辰对应十二经脉，按时养生可事半功倍。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 12 时辰基础数据用于渲染罗盘
+    const timeSlots = [
+        { name: '子时\n胆经' }, { name: '丑时\n肝经' }, { name: '寅时\n肺经' },
+        { name: '卯时\n大肠经' }, { name: '辰时\n胃经' }, { name: '巳时\n脾经' },
+        { name: '午时\n心经' }, { name: '未时\n小肠经' }, { name: '申时\n膀胱经' },
+        { name: '酉时\n肾经' }, { name: '戌时\n心包经' }, { name: '亥时\n三焦经' }
+    ];
+
+    let chart = echarts.init(document.getElementById('meridianChart'));
+
+    function updateClock() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+
+        // 实时显示本地秒表
+        document.getElementById('realTimeDisplay').innerText =
+            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        // 计算当前属于哪个时辰 (23:00-01:00 为子时[0])
+        const currentIndex = Math.floor((hours + 1) % 24 / 2);
+
+        // 构建 ECharts 罗盘数据
+        const chartData = timeSlots.map((item, index) => {
+            const isCurrent = index === currentIndex;
+            return {
+                name: item.name,
+                value: 1, // 平分12份
+                itemStyle: {
+                    color: isCurrent ? '#2e8b57' : '#e9ecef', // 当前时辰高亮亮绿色
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                },
+                label: {
+                    color: isCurrent ? '#ffffff' : '#6c757d',
+                    fontWeight: isCurrent ? 'bold' : 'normal'
+                }
+            };
+        });
+
+        chart.setOption({
+            series: [
+                {
+                    type: 'pie',
+                    radius: ['35%', '85%'],
+                    roseType: 'area', // 玫瑰图效果更具动感
+                    startAngle: 105, // 旋转角度，让"子时"刚好在正上方
+                    itemStyle: { borderRadius: 8 },
+                    label: {
+                        show: true,
+                        position: 'inside',
+                        fontSize: 14,
+                        lineHeight: 20
+                    },
+                    data: chartData,
+                    animationDurationUpdate: 500
+                }
+            ]
+        });
+    }
+
+    // 立即执行一次并开启秒表
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // 窗口缩放适配
+    window.addEventListener('resize', () => chart.resize());
+});
+</script>
+{% endblock %}

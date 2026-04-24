@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile_data.nickname }}的主页 - ZENITH 悦康生态{% endblock %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        background: linear-gradient(135deg, #fdfbfb 0%, #f4f2ea 100%);
+        min-height: 100vh;
+        color: #2c3e50;
+    }
+
+    .profile-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+
+    /* 顶部个人卡片 */
+    .profile-header-card {
+        background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 1); border-radius: 24px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+        padding: 50px 30px; text-align: center; margin-bottom: 40px; position: relative;
+    }
+
+    .profile-avatar {
+        width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 20px;
+        background-color: #ffffff; border: 4px solid rgba(212,181,142,0.3);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 4rem; color: #d4b58e; box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        background-size: cover; background-position: center;
+    }
+
+    .profile-name { font-weight: 800; font-size: 1.8rem; color: #2c3e50; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .profile-uid { color: #94a3b8; font-size: 0.95rem; margin-bottom: 15px; }
+
+    .user-tags { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+    .user-tag { background: rgba(212,181,142,0.15); color: #c49a6c; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+
+    .profile-bio { color: #5c6c7d; font-size: 1.05rem; max-width: 600px; margin: 0 auto 30px; line-height: 1.6; }
+
+    .profile-stats { display: flex; justify-content: center; gap: 50px; margin-bottom: 30px; }
+    .stat-item { text-align: center; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #344054; }
+    .stat-label { font-size: 0.95rem; color: #94a3b8; font-weight: 500; }
+
+    /* 按钮 */
+    .btn-action { background: #344054; color: white; border: none; padding: 12px 35px; border-radius: 30px; font-weight: 600; transition: all 0.3s; }
+    .btn-action:hover { background: #1d2939; box-shadow: 0 8px 20px rgba(52, 64, 84, 0.2); transform: translateY(-2px); }
+    .btn-action-outline { background: #ffffff; color: #344054; border: 1px solid rgba(0,0,0,0.1); padding: 12px 35px; border-radius: 30px; font-weight: 600; transition: all 0.3s; }
+    .btn-action-outline:hover { background: #f8fafc; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05); transform: translateY(-2px); }
+
+    /* 选项卡 */
+    .custom-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+    .custom-tab-btn { background: transparent; color: #94a3b8; border: none; font-size: 1.1rem; font-weight: 600; padding: 10px 20px; border-radius: 30px; transition: all 0.3s; }
+    .custom-tab-btn.active { background: #ffffff; color: #2c3e50; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+    /* 帖子卡片 */
+    .post-card { background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(255,255,255,1); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.03); transition: all 0.3s; }
+    .post-card:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(0,0,0,0.06); }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+
+    <div class="profile-header-card">
+        <div class="profile-avatar" style="{% if profile_data.avatar_url %}background-image: url('{{ profile_data.avatar_url }}');{% endif %}">
+            {% if not profile_data.avatar_url %}<i class="bi bi-person-fill"></i>{% endif %}
+        </div>
+
+        <div class="profile-name">
+            {{ profile_data.nickname }}
+            {% if profile_data.is_npc %} <i class="bi bi-patch-check-fill" style="color: #d4b58e; font-size: 1.4rem;" title="官方认证专家"></i> {% endif %}
+        </div>
+        <div class="profile-uid">@{{ profile_data.username }}</div>
+
+        <div class="user-tags">
+            <span class="user-tag"><i class="bi bi-fire"></i> 运动达人</span>
+            <span class="user-tag"><i class="bi bi-stars"></i> ZENITH 成员</span>
+        </div>
+
+        <p class="profile-bio">"{{ profile_data.bio or '探索健康，遇见更好的自己。' }}"</p>
+
+        <div class="profile-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ profile_data.following_count | default(0) }}</div>
+                <div class="stat-label">关注</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ profile_data.followers_count | default(0) }}</div>
+                <div class="stat-label">粉丝</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ profile_data.total_likes | default(0) }}</div>
+                <div class="stat-label">获赞</div>
+            </div>
+        </div>
+
+        <div>
+            {% if current_user != profile_data.username %}
+                <button class="btn-action" onclick="alert('关注功能开发中')">
+                    {{ '已关注' if is_following else '+ 关注 TA' }}
+                </button>
+            {% else %}
+                <button class="btn-action-outline" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="bi bi-pencil-square"></i> 编辑主页资料
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="custom-tabs" id="profileTabs" role="tablist">
+        <button class="custom-tab-btn active" data-bs-toggle="pill" data-bs-target="#my-posts">TA 的发布 ({{ my_posts|length }})</button>
+        <button class="custom-tab-btn" data-bs-toggle="pill" data-bs-target="#liked-posts">TA 赞过的 ({{ liked_posts|length }})</button>
+    </div>
+
+    <div class="tab-content" id="profileTabsContent">
+        <div class="tab-pane fade show active" id="my-posts" role="tabpanel">
+            <div class="row">
+                {% for post in my_posts %}
+                <div class="col-md-6">
+                    <div class="post-card">
+                        <div style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 12px;"><i class="bi bi-clock"></i> {{ post.created_at }}</div>
+                        <p style="color: #475569; font-size: 1.05rem; line-height: 1.6; margin-bottom: 15px;">{{ post.content }}</p>
+                        {% if post.image_url %}
+                        <div style="width: 100%; height: 180px; overflow: hidden; border-radius: 12px; margin-bottom: 15px;">
+                            <img src="{{ post.image_url }}" style="width: 100%; height: 100%; object-fit: cover;" alt="配图">
+                        </div>
+                        {% endif %}
+                        <div style="display: flex; gap: 20px; color: #94a3b8; font-size: 0.9rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
+                            <span><i class="bi bi-heart-fill" style="color: #ff2c55;"></i> {{ post.likes_count }}</span>
+                            <span><i class="bi bi-chat-text"></i> {{ post.comments_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 empty-state">
+                    <i class="bi bi-journal-text" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 15px; display: block;"></i>
+                    <p>暂时还没有发布任何动态哦</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="liked-posts" role="tabpanel">
+            <div class="row">
+                {% for post in liked_posts %}
+                <div class="col-md-6">
+                    <div class="post-card">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: #f8fafc; display: flex; align-items: center; justify-content: center; color: #d4b58e;"><i class="bi bi-person-fill"></i></div>
+                            <h6 style="margin: 0; font-weight: 700; color: #2c3e50;">{{ post.username }}</h6>
+                        </div>
+                        <p style="color: #475569; font-size: 1.05rem;">{{ post.content }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 empty-state">
+                    <i class="bi bi-heart" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 15px; display: block;"></i>
+                    <p>还没有点赞过其他动态</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.1);">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding: 25px 30px;">
+        <h5 class="modal-title" style="font-weight: 800; color: #2c3e50;">编辑个人资料</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding: 30px;">
+        <form id="editProfileForm">
+          <div class="mb-4">
+            <label style="font-size: 0.95rem; font-weight: 600; color: #475569; margin-bottom: 8px;">展示昵称</label>
+            <input type="text" id="editNickname" value="{{ profile_data.nickname }}" required style="width: 100%; padding: 15px 20px; border: 1px solid #e2e8f0; border-radius: 16px; background: #f8fafc; font-size: 1rem; color: #2c3e50; outline: none;">
+          </div>
+          <div class="mb-2">
+            <label style="font-size: 0.95rem; font-weight: 600; color: #475569; margin-bottom: 8px;">个人签名</label>
+            <textarea id="editBio" rows="4" placeholder="介绍一下你自己吧..." style="width: 100%; padding: 15px 20px; border: 1px solid #e2e8f0; border-radius: 16px; background: #f8fafc; font-size: 1rem; color: #2c3e50; outline: none; resize: none;">{{ profile_data.bio if profile_data.bio else '' }}</textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer" style="border-top: none; padding: 20px 30px 30px;">
+        <button type="button" style="background: transparent; border: none; color: #94a3b8; font-weight: 600; padding: 10px 20px;" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn-action" onclick="saveProfile()">保存修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    function saveProfile() {
+        const nickname = document.getElementById('editNickname').value.trim();
+        const bio = document.getElementById('editBio').value.trim();
+
+        if (!nickname) { alert('昵称不能为空哦'); return; }
+
+        fetch('/api/community/profile/edit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname: nickname, bio: bio })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.code === 0) location.reload();
+            else alert(data.msg);
+        })
+        .catch(error => { alert('网络请求失败，请稍后重试'); });
+    }
+</script>
+{% endblock %}

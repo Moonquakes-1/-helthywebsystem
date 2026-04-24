@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}我的健康控制台{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    {% block css %}{% endblock %}
+
+    <style>
+        .sidebar img, .user-avatar img, [class*="avatar"] img {
+            object-fit: cover !important;
+            object-position: center !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* ================= 高级感核心变量定义 ================= */
+        :root {
+            --sidebar-bg: #1e293b;     /* 深岩灰，比纯黑更有质感 */
+            --sidebar-text: #94a3b8;   /* 柔和的侧边栏次要文字 */
+            --theme-accent: #059669;   /* 翡翠绿，沉稳的医疗健康色 */
+            --bg-color: #f8fafc;       /* 极浅灰白背景，极其干净 */
+            --card-bg: #ffffff;        /* 纯白卡片 */
+            --text-main: #0f172a;      /* 深岩灰文字，不伤眼 */
+        }
+
+        body {
+            background-color: var(--bg-color) !important;
+            color: var(--text-main) !important;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            letter-spacing: 0.3px;
+        }
+
+        /* ================= 主内容区与卡片质感 ================= */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 40px;
+            background-color: var(--bg-color) !important;
+        }
+
+        .card, .dashboard-card, .main-content .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(226, 232, 240, 0.6) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+            transform: translateY(-3px);
+        }
+
+        .header-nav {
+            margin-bottom: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-nav h3 {
+            color: var(--text-main);
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* ================= 侧边栏与胶囊导航 ================= */
+        .sidebar {
+            width: 260px; height: 100vh; position: fixed;
+            left: 0; top: 0;
+            background: var(--sidebar-bg) !important;
+            color: white; z-index: 1000;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.06);
+            overflow-y: auto;
+        }
+
+        .user-profile {
+            padding: 40px 20px 30px; text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .nav-link {
+            color: var(--sidebar-text);
+            padding: 12px 20px;
+            margin: 4px 16px;
+            border-radius: 10px;
+            display: flex; align-items: center; gap: 15px;
+            transition: all 0.3s ease; text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .nav-link.active {
+            color: #ffffff;
+            background: var(--theme-accent);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+            border-left: none;
+        }
+
+        .nav-link i { font-size: 1.2rem; }
+
+        .sidebar h6 {
+            color: #64748b !important;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+            margin-top: 25px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="user-profile">
+            <input type="file" id="avatarUpload" style="display: none;" accept="image/*">
+
+            <div class="avatar-container" onclick="document.getElementById('avatarUpload').click()" style="cursor: pointer; position: relative; display: inline-block; width: 76px; height: 76px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,255,255,0.1); margin: 0 auto 15px auto; background: var(--theme-accent); box-shadow: 0 8px 16px rgba(0,0,0,0.2); transition: transform 0.3s;">
+                <img id="userAvatar" src="{{ session.tcm_user.avatar | default('/static/images/default_avatar.png') }}" class="..." alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: {% if session.get('tcm_user', {}).get('avatar') %}block{% else %}none{% endif %};">
+
+                <i id="defaultAvatarIcon" class="bi bi-person" style="font-size: 32px; color: white; line-height: 70px; display: {% if session.get('tcm_user', {}).get('avatar') %}none{% else %}block{% endif %};"></i>
+
+                <div class="avatar-overlay" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 26px; line-height: 26px; background: rgba(0,0,0,0.7); color: white; font-size: 12px; display: none; backdrop-filter: blur(2px);">更换</div>
+            </div>
+
+            <h5 class="mb-1 text-white fw-bold" style="letter-spacing: 0.5px;">Hi, {{ session.get('tcm_user', {}).get('username', '用户') }}</h5>
+            <small style="color: var(--sidebar-text);">专属健康管理档案</small>
+        </div>
+
+        <div class="nav flex-column mt-3">
+            <a href="/tcm" class="nav-link {% if request.path == '/tcm' %}active{% endif %}">
+                <i class="bi bi-grid-1x2"></i> 健康总览
+            </a>
+
+            <h6 class="px-4 mt-3 mb-2 text-uppercase">专属测定</h6>
+            <a href="/tcm/constitution" class="nav-link {% if request.path == '/tcm/constitution' %}active{% endif %}">
+                <i class="bi bi-person-lines-fill"></i> 中医体质辨识
+            </a>
+            <a href="/tcm/meridian" class="nav-link {% if request.path == '/tcm/meridian' %}active{% endif %}">
+                <i class="bi bi-clock-history"></i> 子午流注时钟
+            </a>
+
+            <h6 class="px-4 mt-3 mb-2 text-uppercase">健康管理</h6>
+            <a href="/tcm/record" class="nav-link {% if request.path == '/tcm/record' %}active{% endif %}">
+                <i class="bi bi-journal-medical"></i> 身体状况日记
+            </a>
+
+            <li class="nav-item">
+                <a href="/health-dashboard" class="nav-link">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>健康数据中心</span>
+                </a>
+            </li>
+
+            <a href="/tcm/articles" class="nav-link text-white mb-2 d-flex align-items-center">
+                <i class="bi bi-journal-richtext me-3 fs-5"></i> 康养资讯专栏
+            </a>
+
+            <a href="/tcm/consult" class="nav-link {% if request.path == '/tcm/consult' %}active{% endif %}">
+                <i class="bi bi-robot"></i> AI 健康管家
+            </a>
+
+            <h6 class="px-4 mt-3 mb-2 text-uppercase">服务与药房</h6>
+            <a href="/tcm/store" class="nav-link {% if request.path == '/tcm/store' %}active{% endif %}">
+                <i class="bi bi-bag-heart"></i> 药食同源商城
+            </a>
+
+            <a href="/cart" class="nav-link">
+                <i class="bi bi-cart3"></i> 购物车
+                <span id="cart-badge" class="badge bg-danger rounded-pill shadow-sm" style="margin-left: auto; display: none;">0</span>
+            </a>
+
+            <hr class="mx-4 mt-4 mb-3" style="border-color: rgba(255,255,255,0.1);">
+            <a href="/" class="nav-link"><i class="bi bi-arrow-left-circle"></i> 返回健身大厅</a>
+            <a href="/tcm/logout" class="nav-link text-danger mt-1"><i class="bi bi-power"></i> 退出登录</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header-nav">
+            <h3>{% block page_title %}健康总览{% endblock %}</h3>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 头像微动效
+            const avatarCont = document.querySelector('.avatar-container');
+            const overlay = document.querySelector('.avatar-overlay');
+            if (avatarCont && overlay) {
+                avatarCont.addEventListener('mouseenter', () => {
+                    overlay.style.display = 'block';
+                    avatarCont.style.transform = 'scale(1.05)';
+                });
+                avatarCont.addEventListener('mouseleave', () => {
+                    overlay.style.display = 'none';
+                    avatarCont.style.transform = 'scale(1)';
+                });
+            }
+
+            // 购物车角标
+            fetch('/cart/info')
+                .then(res => res.json())
+                .then(data => {
+                    if(data.code === 0 && data.count > 0) {
+                        const badge = document.getElementById('cart-badge');
+                        badge.innerText = data.count;
+                        badge.style.display = 'inline-block';
+                    }
+                });
+
+            // 头像上传
+            document.getElementById('avatarUpload').addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    let formData = new FormData();
+                    formData.append('avatar', this.files[0]);
+
+                    fetch('/upload-avatar', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 0) {
+                            document.getElementById('defaultAvatarIcon').style.display = 'none';
+                            const userImg = document.getElementById('userAvatar');
+                            userImg.src = data.url;
+                            userImg.style.display = 'block';
+                        } else {
+                            alert('头像上传失败: ' + data.msg);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        });
+    </script>
+    {% block js %}{% endblock %}
+
+<a href="/tcm" class="floating-back-btn" id="floatingBackBtn">
+    <i class="bi bi-arrow-left-circle-fill"></i> 返回上一页
+</a>
+
+<style>
+    .floating-back-btn {
+        position: fixed;
+        top: 30px; /* 中医系统侧边栏布局，高度调低一点 */
+        right: 40px; /* 改为放在右上角更符合后台逻辑 */
+        left: auto;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        color: #475569;
+        padding: 10px 20px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+    }
+    .floating-back-btn i {
+        font-size: 1.3rem;
+        color: var(--theme-accent);
+        transition: transform 0.3s;
+    }
+    .floating-back-btn:hover {
+        background: #ffffff;
+        color: var(--theme-accent);
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(5, 150, 105, 0.2);
+    }
+    .floating-back-btn:hover i {
+        transform: translateX(-4px);
+    }
+    .floating-back-btn.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const backBtn = document.getElementById('floatingBackBtn');
+
+        // 如果不是中医主控制台页面，才显示返回按钮
+        if (currentPath !== '/tcm' && currentPath !== '/tcm/') {
+
+            if (currentPath.includes('/tcm/recommend')) {
+                // 特例：饮食方案虽然带有/tcm/前缀，但属于大首页的三个卡片之一
+                backBtn.href = "/#core-services";
+                backBtn.innerHTML = '<i class="bi bi-arrow-left-circle-fill"></i> 返回主页板块';
+            } else {
+                // 其他情况，回中医总览
+                backBtn.href = "/tcm";
+            }
+
+            setTimeout(() => {
+                backBtn.classList.add('show');
+            }, 100);
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}关于我们 - ZENITH 悦康 | 智慧康养生态{% endblock %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;800&family=Noto+Sans+SC:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-color: #ffffff; /* 改为纯白，彻底消除与导航栏之间的灰色割裂感 */
+        --accent-blue: #0ea5e9;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --glass-bg: rgba(255, 255, 255, 0.7);
+    }
+
+    .about-wrapper {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        font-family: 'Noto Sans SC', sans-serif;
+        margin: 0;
+        line-height: 1.8;
+        overflow-x: hidden;
+        /* 移除了原本的 padding-top，让页面完全顶到浏览器最上端 */
+    }
+
+    /* --- 整体呼吸感布局 --- */
+    .about-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .about-section {
+        padding: 100px 0;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out;
+    }
+
+    .about-section.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* --- Hero Section --- */
+    .hero-about {
+        height: 70vh; /* 略微增加高度 */
+        padding-top: 90px; /* 在内部将文字往下推，使背景色可以填满顶部空间 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.05) 0%, transparent 70%);
+    }
+
+    .hero-content h1 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 4rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-bottom: 10px;
+        color: var(--text-main);
+    }
+
+    .hero-content .subtitle {
+        font-size: 1.5rem;
+        font-weight: 300;
+        color: var(--text-muted);
+        letter-spacing: 5px;
+    }
+
+    /* --- 板块样式 --- */
+    .grid-row {
+        display: flex;
+        align-items: center;
+        gap: 60px;
+        margin-bottom: 40px;
+    }
+
+    .grid-row.reverse {
+        flex-direction: row-reverse;
+    }
+
+    .text-content {
+        flex: 1;
+    }
+
+    .image-content {
+        flex: 1.2;
+        position: relative;
+    }
+
+    .image-content img {
+        width: 100%;
+        border-radius: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        transition: transform 0.5s ease;
+    }
+
+    .image-content:hover img {
+        transform: scale(1.02);
+    }
+
+    /* 毛玻璃装饰块 */
+    .glass-decorator {
+        position: absolute;
+        bottom: -30px;
+        right: -30px;
+        width: 200px;
+        padding: 25px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        z-index: 2;
+    }
+
+    .reverse .glass-decorator {
+        left: -30px;
+        right: auto;
+    }
+
+    .about-wrapper h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+    .about-wrapper h2::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 40px;
+        height: 4px;
+        background: var(--accent-blue);
+        border-radius: 2px;
+    }
+
+    .desc-p {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        text-align: justify;
+    }
+
+    /* --- 底部宣言 --- */
+    .manifesto {
+        background: white;
+        padding: 120px 0;
+        text-align: center;
+    }
+
+    .manifesto-box {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .slogan {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 20px;
+    }
+
+    .brand-logo {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        color: var(--accent-blue);
+        letter-spacing: 2px;
+    }
+
+    @media (max-width: 768px) {
+        .grid-row, .grid-row.reverse { flex-direction: column; text-align: center; }
+        .hero-content h1 { font-size: 2.5rem; }
+        .image-content { order: -1; }
+        .glass-decorator { display: none; }
+        .about-wrapper h2::after { left: 50%; transform: translateX(-50%); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-wrapper">
+    <section class="hero-about about-section visible">
+        <div class="hero-content">
+            <h1 style="margin: 0;">ABOUT <span style="color: var(--accent-blue);">ZENITH</span></h1>
+            <div class="subtitle">让健康回归本真</div>
+        </div>
+    </section>
+
+    <div class="about-container">
+        <section class="about-section" id="intention">
+            <div class="grid-row">
+                <div class="text-content">
+                    <h2>我们的初衷</h2>
+                    <p class="desc-p">
+                        在快节奏的现代生活中，健康往往被简化为一串冰冷的数字或碎片化的补救。我们创立 <strong>ZENITH 悦康</strong>，是希望打破这种割裂。
+                    </p>
+                    <p class="desc-p">
+                        我们的初衷很简单：建立一个不仅懂数据、更懂“人”的系统。将流传千年的中医智慧与严谨的现代运动科学结合，让每个人都能拥有一位既明白经络调理、又精通科学健身的数字化私人健康专家。
+                    </p>
+                </div>
+                <div class="image-content">
+                    <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?auto=format&fit=crop&q=80&w=1200" alt="现代空间中的身心平衡" referrerpolicy="no-referrer">
+                    <div class="glass-decorator">
+                        <i class="bi bi-heart-pulse-fill text-primary" style="font-size: 2rem;"></i>
+                        <div style="font-weight: 700; margin-top: 10px;">源于平衡</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">寻找身体与自然的最优解</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section" id="story">
+            <div class="grid-row reverse">
+                <div class="text-content">
+                    <h2>背景故事</h2>
+                    <p class="desc-p">
+                        我们看到过太多无奈：健身房里盲目跟风导致损伤的年轻人，或者是面对琳琅满目的养生建议却不知从何下手的都市职场人。
+                    </p>
+                    <p class="desc-p">
+                        <strong>现代健身</strong>往往关注肌肉的爆发与线条，却有时忽略了内在气息的流转；而<strong>传统中医</strong>拥有深厚的整体调理底蕴，却常常因为“门槛高”而让年轻人望而却步。
+                    </p>
+                    <p class="desc-p">
+                        这就是 <strong>ZENITH</strong> 诞生的时刻——我们决定架起一座桥梁，用科技的语言翻译古老的智慧，解决“不了解自身体质”和“缺乏科学指导”的痛点。
+                    </p>
+                </div>
+                <div class="image-content">
+                  <img src="https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&q=80&w=1200" alt="传统草本与现代科学的融合" referrerpolicy="no-referrer">
+                    <div class="glass-decorator">
+                        <i class="bi bi-intersect text-primary" style="font-size: 2rem;"></i>
+                        <div style="font-weight: 700; margin-top: 10px;">双重演进</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">科技翻译智慧，智慧指引科技</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section" id="philosophy">
+            <div class="grid-row">
+                <div class="text-content">
+                    <h2>理念与意义</h2>
+                    <p class="desc-p">
+                        我们坚信：<strong>真正的健康，是内外的绝对平衡。</strong>
+                    </p>
+                    <p class="desc-p">
+                        ZENITH 悦康带来的不只是计划表，而是一种全新的生活范式。我们希望通过这个平台，让中医的“治未病”理念在算法的加持下焕发生机。
+                    </p>
+                    <p class="desc-p">
+                        每一个个体的改变，都是社会健康生态的基石。我们存在的意义，是让科技带有温度，让每个人都能在忙碌的尘世中，触手可及那份属于自己的、科学的、本真的健康。
+                    </p>
+                </div>
+                <div class="image-content">
+                    <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=1200" alt="高定健康生活方式" referrerpolicy="no-referrer">
+                    <div class="glass-decorator">
+                        <i class="bi bi-stars text-primary" style="font-size: 2rem;"></i>
+                        <div style="font-weight: 700; margin-top: 10px;">触手可及</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">让健康成为一种自然</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="manifesto about-section visible">
+        <div class="manifesto-box">
+            <div class="slogan">“精于理，悦于身，康于心。”</div>
+            <div class="brand-logo">ZENITH 悦康 · 智慧健康管理</div>
+        </div>
+    </section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sections = document.querySelectorAll('.about-section');
+        const observerOptions = { threshold: 0.2 };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+    });
+</script>
+{% endblock %}

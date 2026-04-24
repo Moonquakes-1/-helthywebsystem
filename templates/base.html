@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}悦康运动系统{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+
+    <style>
+        /* ==========================================================================
+   ZENITH 比赛级通用视觉系统 (Premium Light Theme)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+:root {
+    --brand-dark: #1e293b;      /* 极深蓝灰，用于高级感实心字 */
+    --brand-blue: #0ea5e9;      /* 品牌核心亮蓝 */
+    --brand-blue-light: #e0f2fe;/* 极浅蓝背景衬托 */
+    --bg-glass: rgba(255, 255, 255, 0.75); /* 毛玻璃底色 */
+}
+
+body { font-family: 'Noto Sans SC', sans-serif; }
+
+/* 1. 完美复刻图1：顶级排版系统 */
+.hero-title-group {
+    display: flex;
+    flex-direction: column;
+    line-height: 0.95;
+    font-family: 'Montserrat', sans-serif;
+    user-select: none;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--brand-blue);
+    letter-spacing: 6px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.text-solid {
+    font-size: 8rem; /* 根据屏幕大小可自行微调 */
+    font-weight: 900;
+    color: var(--brand-dark);
+    text-transform: uppercase;
+    letter-spacing: -2px;
+}
+
+.text-outline {
+    font-size: 8.5rem;
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 3px var(--brand-blue); /* 镂空描边核心代码 */
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: -10px 0; /* 让上下字距更紧凑，更有设计感 */
+    position: relative;
+    /* 增加极微弱的发光，让描边不干瘪 */
+    text-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
+}
+
+/* 2. 所有后续页面的高级承载体：弥散光毛玻璃卡片 */
+.premium-glass-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.9); /* 纯白极细描边带来精致感 */
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.04), /* 环境软阴影 */
+                inset 0 1px 0 rgba(255, 255, 255, 1); /* 内高光 */
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px rgba(14, 165, 233, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+/* 高级数据展示数值 */
+.data-metric-value {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--brand-dark);
+    line-height: 1.1;
+}
+.data-metric-unit {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-left: 5px;
+}
+        /* ================= 导航栏专属：复刻登录页的高级按钮 ================= */
+        .btn-nav-login {
+            background: transparent;
+            color: #4facfe !important;
+            border: 1px solid #4facfe;
+            padding: 8px 24px;
+            border-radius: 4px; /* 匹配登录页的硬朗圆角 */
+            font-size: 0.9rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-nav-login:hover {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #ffffff !important;
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* 导航栏：纯白高对比度，保证字体绝对清晰 */
+        .header {
+            background: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header .navbar-brand {
+            color: #2c3e50 !important; /* 深黑灰，品牌名更显眼 */
+        }
+
+        .header .nav-link {
+            color: #2c3e50 !important; /* 导航链接深色 */
+            font-weight: 700;          /* 加粗提升可读性 */
+            transition: color 0.3s ease;
+        }
+
+        .header .nav-link:hover {
+            color: #4facfe !important; /* 悬浮时变天蓝色 */
+        }
+
+        /* 购物车等右侧图标的颜色同步加深 */
+        .header .text-dark {
+            color: #2c3e50 !important;
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+<body>
+    <header class="header">
+        <div class="container" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0;">
+            <a class="navbar-brand" href="/" style="font-family: 'Montserrat', sans-serif; font-weight: 800; letter-spacing: 1px; color: #2c3e50; font-size: 1.4rem;">
+                <i class="bi bi-activity" style="color: #4facfe; margin-right: 5px; font-size: 1.6rem;"></i>
+                ZENITH <span style="font-weight: 300; color: #95a5a6;">FITNESS</span>
+            </a>
+
+            <nav style="flex-grow: 1;">
+                <ul class="nav-list" style="display: flex; justify-content: center; margin-bottom: 0; padding-left: 0; list-style: none; gap: 20px;">
+                    <li class="nav-item"><a href="/" class="nav-link">首页</a></li>
+                    <li class="nav-item"><a href="/tcm" class="nav-link">康养</a></li>
+                    <li class="nav-item"><a href="/shop" class="nav-link">商城</a></li>
+                    <li class="nav-item"><a href="/videos" class="nav-link">精选视频</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/community"><i class="bi bi-people"></i> 运动社区</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about"><i class="bi bi-info-circle"></i> 关于我们</a></li>
+                </ul>
+            </nav>
+
+            <div style="display: flex; align-items: center;">
+                {% if 'user' in session %}
+                    <div class="d-flex align-items-center me-3">
+                        <img src="{{ url_for('static', filename='images/avatars/default.png') }}"
+                             class="avatar me-2"
+                             alt="用户头像"
+                             style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;">
+                        <span class="user-name" style="color: #2c3e50; font-weight: 600;">{{ session.user.username }}</span>
+                    </div>
+                    <a href="/cart" class="text-dark position-relative me-3" style="font-size: 1.2rem; transition: color 0.3s;" onmouseover="this.style.color='#4facfe'" onmouseout="this.style.color='#212529'">
+                        <i class="bi bi-cart-fill"></i>
+                        <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">0</span>
+                    </a>
+                    <a href="/orders" class="text-dark me-3" style="font-size: 1.2rem; transition: color 0.3s;" onmouseover="this.style.color='#4facfe'" onmouseout="this.style.color='#212529'">
+                        <i class="bi bi-receipt-cutoff"></i>
+                    </a>
+                    <a href="/logout" class="btn btn-outline-danger btn-sm" style="border-radius: 20px; padding: 4px 15px;">退出</a>
+                {% else %}
+                    <a href="/login" class="btn-nav-login">立即登录</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container-fluid px-0">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer" style="background: linear-gradient(90deg, #2c3e50, #34495e); color: white; padding: 40px 0; margin-top: 60px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);">
+        <div class="container">
+            <div class="text-center">
+                <p class="footer-text mb-3" style="font-size: 16px; font-weight: 500;">智慧健身系统 © 2025 版权所有</p>
+                <p class="text-sm opacity-80">专业训练 + 科学营养 = 完美身材</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+        <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body">
+                <i class="bi bi-check-circle me-2 text-success"></i>商品已添加到购物车！
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 登录拦截逻辑
+            const handleLoginRequiredLinks = function() {
+                const allLinks = document.querySelectorAll('a.nav-link:not([href="/login"]):not([href="/register"]), .index-card-link, a.btn-primary:not([href="/login"]):not([href="/register"]), a.btn-secondary:not([href="/register"]):not(.add-to-cart)');
+
+                allLinks.forEach(element => {
+                    element.addEventListener('click', function(e) {
+                        const isLoggedIn = document.querySelector('a[href="/logout"]') !== null;
+                        if (isLoggedIn) return;
+
+                        if (this.tagName === 'A') {
+                            const href = this.getAttribute('href');
+                            if (href === '/' || href === '/login' || href === '/register') return;
+                        }
+
+                        e.preventDefault();
+                        let redirectUrl = window.location.href;
+                        if (this.tagName === 'A') {
+                            redirectUrl = this.getAttribute('href') || window.location.href;
+                        }
+                        window.location.href = '/login?redirect=' + encodeURIComponent(redirectUrl);
+                    });
+                });
+            };
+
+            handleLoginRequiredLinks();
+
+            if (typeof initAddToCart === 'function') initAddToCart();
+            if (typeof initCartCount === 'function') initCartCount();
+        });
+    </script>
+    {% block js %}{% endblock %}
+
+<a href="/" class="floating-back-btn" id="floatingBackBtn">
+    <i class="bi bi-arrow-left-circle-fill"></i> 返回主页板块
+</a>
+
+<style>
+    .floating-back-btn {
+        position: fixed;
+        top: 100px;
+        left: 30px;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        color: #475569;
+        padding: 12px 24px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity: 0;
+        transform: translateX(-20px);
+        pointer-events: none;
+    }
+    .floating-back-btn i {
+        font-size: 1.3rem;
+        color: #0ea5e9;
+        transition: transform 0.3s;
+    }
+    .floating-back-btn:hover {
+        background: #ffffff;
+        color: #0ea5e9;
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(14, 165, 233, 0.2);
+    }
+    .floating-back-btn:hover i {
+        transform: translateX(-4px);
+    }
+    .floating-back-btn.show {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+    @media (max-width: 768px) {
+        .floating-back-btn {
+            top: 80px;
+            left: 15px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+        .floating-back-btn i { font-size: 1.1rem; }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const backBtn = document.getElementById('floatingBackBtn');
+
+        // 核心逻辑：非首页时显示，并根据当前路径智能分配 href 锚点
+        if (currentPath !== '/' && currentPath !== '/index' && currentPath !== '/index.html') {
+
+            // 智能路由映射
+            if (currentPath.includes('/profile') || currentPath.includes('/tcm/recommend') || currentPath.includes('/plan-create')) {
+                backBtn.href = "/#core-services";
+            } else if (currentPath.includes('/gym')) {
+                backBtn.href = "/#gym-section";
+            } else if (currentPath.includes('/assistant')) {
+                backBtn.href = "/#assistant-section";
+            } else if (currentPath.includes('/shop') || currentPath.includes('/equipment') || currentPath.includes('/cart')) {
+                backBtn.href = "/#shop-section";
+            } else if (currentPath.includes('/videos') || currentPath.includes('/community')) {
+                backBtn.href = "/";
+            } else {
+                backBtn.href = "/";
+            }
+
+            // 延迟显示动画
+            setTimeout(() => {
+                backBtn.classList.add('show');
+            }, 100);
+        }
+    });
+</script>
+</body>
+</html>

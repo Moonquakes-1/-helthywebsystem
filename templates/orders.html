@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}我的订单 - ZENITH FITNESS{% endblock %}
+
+{% block css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #fcfaf8 0%, #f4efe6 100%);
+        font-family: 'Inter', -apple-system, sans-serif;
+    }
+    .order-card {
+        border: 1px solid rgba(255,255,255,1);
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.03);
+        margin-bottom: 35px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(15px);
+    }
+    .order-header {
+        background: transparent;
+        color: #2c3e50;
+        padding: 20px 30px;
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .badge-status {
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+    .badge-wait { background: #fff3cd; color: #856404; }
+    .badge-paid { background: #d4edda; color: #155724; }
+
+    .address-bar {
+        padding: 20px 30px;
+        display: flex; align-items: center;
+        background: rgba(255,255,255,0.5);
+    }
+    .product-img {
+        width: 70px; height: 70px; object-fit: contain; border-radius: 12px;
+        background-color: #fff; padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+    .product-icon {
+        width: 70px; height: 70px; background: linear-gradient(135deg, #d4b58e, #e6a23c);
+        color: white; font-weight: bold; font-size: 1.8rem; display: flex;
+        align-items: center; justify-content: center; border-radius: 12px;
+    }
+    .table-light { background: transparent; }
+    .table th { border-bottom: 1px solid rgba(0,0,0,0.05); color: #8c98a4; font-weight: 600; padding: 15px 0;}
+    .table td { border-bottom: 1px solid rgba(0,0,0,0.03); padding: 20px 0; vertical-align: middle; }
+
+    .btn-pay {
+        background: #2c3e50;
+        color: white;
+        border-radius: 30px;
+        font-weight: 800;
+        padding: 10px 35px;
+        transition: all 0.3s;
+    }
+    .btn-pay:hover { background: #e6a23c; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(230, 162, 60, 0.3); }
+
+    /* 支付弹窗定制 */
+    .pay-amount { font-size: 2.8rem; font-weight: 900; color: #e6a23c; letter-spacing: -1px; }
+    .pay-btn-group .btn { border-width: 2px; font-weight: 700; transition: all 0.3s; border-radius: 30px; }
+    .qr-container { border: 2px dashed rgba(212, 181, 142, 0.5); padding: 25px; border-radius: 20px; display: inline-block; background: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1050px;">
+    <h2 class="mb-5 fw-bold" style="color: #2c3e50;"><i class="bi bi-receipt" style="color: #d4b58e;"></i> 我的订单</h2>
+
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <div style="font-size: 1.1rem;">
+                    <i class="bi bi-hash" style="color: #d4b58e;"></i> 订单号: <span class="fw-bold text-dark">{{ order.order_no }}</span>
+                    <span class="badge-status ms-3 {{ 'badge-wait' if order.status == '待支付' else 'badge-paid' }}">{{ order.status }}</span>
+                </div>
+                <div class="fs-4 fw-bold" style="color: #e6a23c;">¥ {{ order.total_price }}</div>
+            </div>
+
+            <div class="address-bar">
+                <div style="width: 45px; height: 45px; border-radius: 50%; background: #fcfaf8; display: flex; align-items: center; justify-content: center; margin-right: 20px; color: #d4b58e; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.03);"><i class="bi bi-geo-alt-fill"></i></div>
+                <div>
+                    <div class="fw-bold mb-1" style="font-size: 1.1rem; color: #2c3e50;">
+                        收货人：{{ order.address.name }} &nbsp;&nbsp; <span style="color: #8c98a4;">{{ order.address.phone }}</span>
+                    </div>
+                    <div class="text-muted small">{{ order.address.detail }}</div>
+                </div>
+            </div>
+
+            <div class="card-body p-0 px-4">
+                <table class="table text-center mb-0" style="background: transparent;">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start ps-4">商品明细</th>
+                            <th>单价</th>
+                            <th>数量</th>
+                            <th class="text-end pe-4">小计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in order.products %}
+                        <tr>
+                            <td class="text-start ps-4">
+                                <div class="d-flex align-items-center cursor-pointer" onclick="showProductDetails('{{ p.name }}', '{{ p.type }}')" title="点击查看档案">
+                                    {% if p.image %}
+                                        <img src="{{ p.image }}" alt="{{ p.name }}" class="product-img me-3">
+                                    {% else %}
+                                        <div class="product-icon me-3">{{ p.name[0] }}</div>
+                                    {% endif %}
+                                    <span class="fw-bold fs-6" style="color: #2c3e50;">{{ p.name }}</span>
+                                </div>
+                            </td>
+                            <td class="fw-bold text-secondary" style="font-size: 1.1rem;">¥ {{ "%.2f"|format(p.price|float) }}</td>
+                            <td class="fw-bold" style="font-size: 1.1rem; color: #2c3e50;">x{{ p.quantity }}</td>
+                            <td class="text-end pe-4 fw-bold fs-5" style="color: #2c3e50;">
+                                ¥ {{ "%.2f"|format((p.price|float) * p.quantity) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-footer text-end p-4 border-top-0" style="background: transparent; border-top: 1px solid rgba(0,0,0,0.05) !important;">
+                <button class="btn btn-light fw-bold text-secondary me-3 px-4" style="border-radius: 30px; background: white;"><i class="bi bi-headset"></i> 联系客服</button>
+                {% if order.status == '待支付' %}
+                <button class="btn btn-pay" onclick="openPaymentModal('{{ order.order_no }}', '{{ order.total_price }}')">
+                    <i class="bi bi-wallet2"></i> 去支付
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.8); border: 1px solid #fff;">
+            <i class="bi bi-box-seam display-1 mb-3" style="color: #e2e8f0;"></i>
+            <h4 class="fw-bold" style="color: #2c3e50;">您还没有下过订单</h4>
+            <a href="/shop" class="btn btn-pay mt-4">去商城逛逛</a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+      <div class="modal-header border-0 p-4" style="border-bottom: 1px solid rgba(0,0,0,0.05) !important;">
+        <h5 class="modal-title fw-bold" id="detailModalTitle" style="color: #2c3e50;"><i class="bi bi-shield-check" style="color: #d4b58e;"></i> 商品档案溯源</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" id="detailModalContent"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+      <div class="modal-header pay-modal-header p-4 d-flex flex-column align-items-center position-relative">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <h5 class="fw-bold mb-1" style="color: #2c3e50;"><i class="bi bi-cash-coin" style="color: #e6a23c;"></i> 安全收银台</h5>
+        <p class="text-muted small mb-0">订单号: <span id="payOrderNo"></span></p>
+      </div>
+      <div class="modal-body text-center p-4">
+        <p class="mb-1 fw-bold" style="color: #5c6c7d;">支付剩余时间 <span id="payTimer" class="ms-1 fs-5" style="color: #ff6b6b;">15:00</span></p>
+        <div class="pay-amount mb-4" id="payAmount">¥ 0.00</div>
+        <div class="pay-btn-group d-flex justify-content-center gap-3 mb-4">
+            <button class="btn btn-outline-success active px-4" id="btnWechat" onclick="switchPayMethod('wechat')"><i class="bi bi-wechat"></i> 微信支付</button>
+            <button class="btn btn-outline-primary px-4" id="btnAlipay" onclick="switchPayMethod('alipay')"><i class="bi bi-alipay"></i> 支付宝</button>
+        </div>
+        <div class="qr-container mb-3 shadow-sm">
+            <img id="qrCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=WeChatPay" width="160" height="160" class="mb-3">
+            <div class="fw-bold text-muted"><i class="bi bi-scan"></i> 请打开手机 <span id="scanAppName" class="text-success">微信</span> 扫码</div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 justify-content-center pb-4 pt-0">
+         <button class="btn btn-pay fs-5 shadow" style="width: 80%; padding: 15px;" id="simPayBtn" onclick="executeRealPayment()"><i class="bi bi-check-circle"></i> 我已完成支付</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showProductDetails(name, type) {
+        let content = "";
+        let titleName = `<span class="text-dark ms-2">${name}</span>`;
+        if (name.includes("哑铃") || name.includes("壶铃") || name.includes("杠铃") || type === "equipment") {
+            content = `<ul class="list-group list-group-flush fs-6"><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-box" style="color: #8c98a4;"></i> 材质工艺:</strong> 环保高密度包胶 / 纯铁铸造内芯，防滑防锈</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-rulers" style="color: #d4b58e;"></i> 规格属性:</strong> 人体工学握把，标准重量防脱手设计</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-activity" style="color: #ff6b6b;"></i> 适用场景:</strong> 核心力量提升、全身肌肉群抗阻力训练</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-shield-check" style="color: #42b983;"></i> 品控认证:</strong> 已通过 ISO9001 国际体育器械安全认证</li></ul>`;
+        } else if (name.includes("蛋白") || name.includes("肌酸") || type === "supplement") {
+            content = `<ul class="list-group list-group-flush fs-6"><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-droplet-half" style="color: #3498db;"></i> 核心成分:</strong> 100% 水解分离乳清蛋白，高纯度 BCAA 支链氨基酸</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-egg-fried" style="color: #e6a23c;"></i> 营养指标:</strong> 每份(30g) 提供 24g 优质蛋白质，零添加蔗糖</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-cup-straw" style="color: #9b59b6;"></i> 用法用量:</strong> 训练后30分钟内，取1-2平勺加入温水或脱脂牛奶摇匀饮用</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-globe-americas" style="color: #42b983;"></i> 奶源产地:</strong> 新西兰草饲黄金奶源带，原装进口</li></ul>`;
+        } else {
+            content = `<ul class="list-group list-group-flush fs-6"><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-geo-alt-fill" style="color: #ff6b6b;"></i> 原材产地:</strong> 长白山核心自然保护区 / 道地原产区直供</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-flower1" style="color: #42b983;"></i> 药典成分:</strong> 100% 纯天然提取物，无防腐剂、无硫磺熏制</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-journal-medical" style="color: #3498db;"></i> 用法用量:</strong> 每日一次，温开水送服或随膳食炖汤</li><li class="list-group-item py-3" style="border-color: rgba(0,0,0,0.05);"><strong><i class="bi bi-patch-check-fill" style="color: #e6a23c;"></i> 国家认证:</strong> 已通过国家中药材 GAP 规范化种植认证</li></ul>`;
+        }
+        document.getElementById('detailModalTitle').innerHTML = `<i class="bi bi-shield-check" style="color: #d4b58e;"></i> 商品档案溯源 ${titleName}`;
+        document.getElementById('detailModalContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('productDetailModal')).show();
+    }
+
+    let payTimerInterval;
+    function openPaymentModal(orderNo, amount) {
+        document.getElementById('payOrderNo').innerText = orderNo;
+        document.getElementById('payAmount').innerText = '¥ ' + amount;
+        switchPayMethod('wechat');
+
+        let minutes = 14, seconds = 59;
+        clearInterval(payTimerInterval);
+        payTimerInterval = setInterval(() => {
+            seconds--;
+            if (seconds < 0) { seconds = 59; minutes--; }
+            if (minutes < 0) { clearInterval(payTimerInterval); alert('支付超时，请重新下单'); return; }
+            let secStr = seconds < 10 ? '0' + seconds : seconds;
+            document.getElementById('payTimer').innerText = `${minutes}:${secStr}`;
+        }, 1000);
+        new bootstrap.Modal(document.getElementById('paymentModal')).show();
+    }
+
+    function switchPayMethod(method) {
+        const btnWechat = document.getElementById('btnWechat'), btnAlipay = document.getElementById('btnAlipay');
+        const qrImg = document.getElementById('qrCodeImg'), appName = document.getElementById('scanAppName');
+        if (method === 'wechat') {
+            btnWechat.classList.add('active'); btnAlipay.classList.remove('active');
+            qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=WechatPay_Mock";
+            appName.innerText = "微信"; appName.className = "text-success";
+        } else {
+            btnAlipay.classList.add('active'); btnWechat.classList.remove('active');
+            qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=Alipay_Mock";
+            appName.innerText = "支付宝"; appName.className = "text-primary";
+        }
+    }
+
+    function executeRealPayment() {
+        const btn = document.getElementById('simPayBtn');
+        const orderNo = document.getElementById('payOrderNo').innerText;
+
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> 与网关通讯中...`;
+        btn.disabled = true;
+
+        fetch('/api/order/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_no: orderNo })
+        })
+        .then(res => res.json())
+        .then(data => {
+            setTimeout(() => {
+                btn.innerHTML = `<i class="bi bi-check2-all"></i> 支付成功！`;
+                btn.style.background = '#42b983';
+                setTimeout(() => { location.reload(); }, 800);
+            }, 1000);
+        })
+        .catch(err => alert("支付网关连接失败"));
+    }
+</script>
+{% endblock %}

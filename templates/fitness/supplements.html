@@ -1,0 +1,841 @@
+{% extends "base.html" %}
+
+{% block title %}健身补剂 - 智慧健身系统{% endblock %}
+
+{% block content %}
+<div class="container py-10">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-12">
+            <div class="inline-block mb-6">
+                <div class="bg-primary text-white p-4 rounded-full inline-block shadow-lg">
+                    <i class="fas fa-capsules fa-3x"></i>
+                </div>
+            </div>
+            <h2 class="display-4 font-weight-bold text-primary mb-4 relative inline-block">
+                健身补剂
+                <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-2/3 h-2 bg-primary rounded-full"></div>
+            </h2>
+            <p class="text-muted text-lg max-w-2xl mx-auto">了解各类健身补剂的功效、价格和适用人群，科学补充营养，助力健身目标实现</p>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="col-lg-7 col-md-9 mb-10">
+            <div class="bg-white p-4 rounded-xl shadow-md transform transition-all hover:shadow-lg">
+                <div class="d-flex align-items-center">
+                    <input type="text" id="search-input" class="form-control rounded-lg border-primary focus:ring-2 focus:ring-primary/50 focus:border-primary mr-4 flex-grow" 
+                           placeholder="搜索补剂名称或功效" value="{{ keyword }}">
+                    <button id="search-button" class="btn btn-primary rounded-lg px-6 py-3 shadow-sm hover:shadow-md transition-all transform hover:scale-105">
+                        <i class="fas fa-search mr-2"></i> 搜索
+                    </button>
+                </div>
+                <!-- 搜索结果统计 -->
+                <div id="search-result-count" class="mt-2 text-sm text-gray-500">
+                    {% if keyword %}
+                        共找到 {{ supplements_list|length }} 个相关补剂
+                    {% else %}
+                        显示全部补剂
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 补剂类别筛选 -->
+        <div class="col-12 mb-12">
+            <div class="bg-white p-4 sm:p-5 rounded-xl shadow-md transform transition-all hover:shadow-lg">
+                <h4 class="text-primary font-semibold mb-4 sm:mb-5 text-center">选择补剂类别</h4>
+                <div class="d-flex flex-wrap justify-center gap-2 sm:gap-3">
+                    <button class="btn rounded-lg px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium {{ 'bg-primary text-white' if supplement_type == '全部' else 'bg-white text-primary border border-primary hover:bg-primary hover:text-white transition-colors' }}" data-type="全部">
+                        全部
+                    </button>
+                    <button class="btn rounded-lg px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium {{ 'bg-primary text-white' if supplement_type == '蛋白质补充剂' else 'bg-white text-primary border border-primary hover:bg-primary hover:text-white transition-colors' }}" data-type="蛋白质补充剂">
+                        蛋白质
+                    </button>
+                    <button class="btn rounded-lg px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium {{ 'bg-primary text-white' if supplement_type == '力量增强剂' else 'bg-white text-primary border border-primary hover:bg-primary hover:text-white transition-colors' }}" data-type="力量增强剂">
+                        力量
+                    </button>
+                    <button class="btn rounded-lg px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium {{ 'bg-primary text-white' if supplement_type == '减脂补充剂' else 'bg-white text-primary border border-primary hover:bg-primary hover:text-white transition-colors' }}" data-type="减脂补充剂">
+                        减脂
+                    </button>
+                    <button class="btn rounded-lg px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium {{ 'bg-primary text-white' if supplement_type == '恢复补充剂' else 'bg-white text-primary border border-primary hover:bg-primary hover:text-white transition-colors' }}" data-type="恢复补充剂">
+                        恢复
+                    </button>
+                    <button class="btn rounded-lg px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium {{ 'bg-primary text-white' if supplement_type == '综合营养补充剂' else 'bg-white text-primary border border-primary hover:bg-primary hover:text-white transition-colors' }}" data-type="综合营养补充剂">
+                        综合
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 补剂列表 -->
+        <div class="col-12">
+            <div class="bg-gradient-to-r from-primary/5 to-info/5 p-5 rounded-2xl mb-8">
+                <div class="d-flex flex-wrap justify-between align-items-center">
+                    <h3 class="text-primary font-bold mb-0">
+                        <i class="fas fa-list-alt mr-2"></i>补剂产品列表
+                    </h3>
+                    <!-- 排序选项 -->
+                    <div class="mt-2 sm:mt-0">
+                        <select id="sort-select" class="form-select rounded-lg border-primary focus:ring-2 focus:ring-primary/50 focus:border-primary bg-white text-primary font-medium">
+                            <option value="default" {% if sort_by == 'default' %}selected{% endif %}>默认排序</option>
+                            <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+                            <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+                            <option value="rating_desc" {% if sort_by == 'rating_desc' %}selected{% endif %}>评分从高到低</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row gap-6 justify-content-center" id="supplements-container">
+                {% if supplements_list %}
+                    {% for supplement in supplements_list %}
+    <div class="col-lg-4 col-md-6 mb-8">
+        <div class="card h-100 rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 border-t-4 border-primary supplement-card" data-id="{{ supplement.id }}" data-type="{{ supplement.type }}">
+            <!-- 产品标签和比较复选框 -->
+            <div class="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+                <span class="badge bg-primary text-white px-3 py-1 rounded-full shadow-md">{{ supplement.type.split('补充剂')[0] }}</span>
+                <!-- 产品比较复选框 -->
+                <div class="bg-white/90 p-1 rounded-md shadow-md">
+                    <input type="checkbox" class="form-check-input compare-checkbox" id="compare-{{ supplement.id }}" data-id="{{ supplement.id }}">
+                    <label for="compare-{{ supplement.id }}" class="form-check-label cursor-pointer" title="添加到比较">比较</label>
+                </div>
+            </div>
+            
+            <div class="card-header bg-primary text-white py-3" data-supplement-type="{{ supplement.type }}">
+                <h5 class="font-weight-bold mb-0 text-center">{{ supplement.name }}</h5>
+            </div>
+            
+            <!-- 补剂图片 -->
+            <div class="supplement-image-container relative" style="height: 220px; overflow: hidden; background-color: #f8f9fa;">
+                <img src="{{ url_for('static', filename='images/supplements/' ~ supplement.image) }}" 
+                     alt="{{ supplement.name }}" 
+                     class="img-fluid w-100 h-100 object-contain p-4" 
+                     onerror="this.src='{{ url_for('static', filename='images/supplements/蛋白质补充剂.jpg') }}'; this.alt='补剂图片';">
+                <!-- 移除可能影响文字显示的装饰元素 -->
+            </div>
+            
+            <div class="card-body p-4 sm:p-5">
+                <div class="mb-3 sm:mb-5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            {% set full_stars = supplement.get('rating', 4.8) | int %}
+                            {% set has_half_star = supplement.get('rating', 4.8) % 1 >= 0.5 %}
+                            
+                            {% for i in range(5) %}
+                                {% if i < full_stars %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% elif i == full_stars and has_half_star %}
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                {% else %}
+                                    <i class="far fa-star text-gray-300"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-sm text-muted ml-2">({{ "%.1f" % supplement.get('rating', 4.8) }})</span>
+                        </div>
+                        <span class="text-gray-500 text-xs">销量: {{ supplement.get('sales', 0) }}</span>
+                    </div>
+                </div>
+                
+                <p class="text-muted mb-4 line-clamp-3 text-center">{{ supplement.description }}</p>
+                
+                <div class="mb-4">
+                    <h6 class="font-weight-bold text-success mb-2 text-sm sm:text-base flex items-center justify-center">
+                        <i class="fas fa-bolt mr-1 sm:mr-2"></i> 主要功效
+                    </h6>
+                    <div class="benefits-container justify-center">
+                        {% for benefit in supplement.benefits[:3] %}
+                        <span class="badge bg-success/10 text-success border border-success/20 rounded-lg px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm mr-1 sm:mr-2 mb-1 sm:mb-2 hover:bg-success/20 cursor-pointer" title="{{ benefit }}">
+                            {{ benefit }}
+                        </span>
+                        {% endfor %}
+                        {% if supplement.benefits|length > 3 %}
+                        <span class="badge bg-gray-200 text-gray-600 border border-gray-300 rounded-lg px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm mb-1 sm:mb-2 hover:bg-gray-300 cursor-pointer" title="更多功效">
+                            +{{ supplement.benefits|length - 3 }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-4 bg-primary/5 p-3 sm:p-4 rounded-lg">
+                    <div class="flex items-center justify-center">
+                        <span class="text-xl sm:text-2xl font-bold text-primary">{{ supplement.price }}</span>
+                        {% if supplement.get('original_price') and supplement.get('original_price') > supplement.price|float %}
+                        <span class="text-gray-400 line-through ml-2">{{ supplement.original_price }}</span>
+                        {% endif %}
+                        {% if supplement.get('discount') %}
+                        <span class="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded">{{ supplement.discount }}折</span>
+                        {% endif %}
+                    </div>
+                    {% if supplement.get('stock_status') == 'low' %}
+                    <span class="text-red-500 text-xs mt-1 inline-block">库存紧张</span>
+                    {% elif supplement.get('stock_status') == 'out' %}
+                    <span class="text-gray-500 text-xs mt-1 inline-block">缺货</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-footer bg-light py-3 sm:py-5 text-center">
+                <div class="flex flex-col sm:flex-row justify-center gap-3">
+                    <a href="/supplements/{{ supplement.id }}" class="btn btn-primary rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition-all transform hover:scale-105 w-full sm:w-auto">
+                        <i class="fas fa-info-circle mr-1 sm:mr-2"></i> 了解详情
+                    </a>
+                    <button class="btn btn-success rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition-all transform hover:scale-105 add-to-cart w-full sm:w-auto" 
+                            data-id="{{ supplement.id }}" 
+                            data-name="{{ supplement.name }}" 
+                            data-price="{{ supplement.price }}" 
+                            data-type="supplement">
+                        <i class="fas fa-shopping-cart mr-1 sm:mr-2"></i> 加入购物车
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-12 bg-white rounded-xl shadow-md">
+                        <div class="inline-block p-4 rounded-full bg-gray-100 mb-4">
+                            <i class="fas fa-search text-gray-400 fa-3x"></i>
+                        </div>
+                        <p class="text-muted text-lg mb-2">未找到符合条件的补剂</p>
+                        <p class="text-sm text-gray-500 mb-4">请尝试其他搜索关键词或类别</p>
+                        <button class="btn btn-primary rounded-lg px-4 py-2" onclick="window.location.href='/supplements'">
+                            <i class="fas fa-sync-alt mr-1"></i> 重置筛选
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 补剂科普 -->
+        <div class="col-12 mt-16">
+            <div class="relative">
+                <!-- 装饰线 -->
+                <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/50 to-info/50 transform -translate-x-1/2 -translate-y-1/2 rounded-full"></div>
+                
+                <div class="text-center mb-10">
+                    <div class="inline-block mb-4">
+                        <div class="bg-info text-white p-3 rounded-full inline-block shadow-lg">
+                            <i class="fas fa-book-medical fa-3x"></i>
+                        </div>
+                    </div>
+                    <h2 class="display-5 font-weight-bold text-info mb-3">补剂科普</h2>
+                    <p class="text-muted max-w-2xl mx-auto">了解健身补剂的科学知识，做出明智的选择</p>
+                </div>
+            </div>
+            
+            <div class="card shadow-xl rounded-xl overflow-hidden bg-white border-0">
+                <div class="card-body p-6">
+                    <div class="row gap-8">
+                        <div class="col-md-6">
+                            <div class="bg-gradient-to-br from-info/5 to-primary/5 p-5 rounded-xl mb-6">
+                                <h5 class="font-weight-bold text-info mb-3 flex items-center">
+                                    <i class="fas fa-question-circle fa-lg mr-2"></i> 什么是健身补剂？
+                                </h5>
+                                <p class="text-muted">健身补剂是一种营养补充产品，旨在帮助健身人士更有效地达到其健身目标。它们不是替代正常饮食，而是作为健康饮食的补充，提供特定的营养素或增强运动表现。</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-success/5 to-info/5 p-5 rounded-xl">
+                                <h5 class="font-weight-bold text-success mb-3 flex items-center">
+                                    <i class="fas fa-check-circle fa-lg mr-2"></i> 如何合理使用补剂？
+                                </h5>
+                                <ul class="list-unstyled text-muted space-y-3">
+                                    <li class="flex items-start">
+                                        <div class="bg-success/10 rounded-full p-1 mt-1 mr-3">
+                                            <i class="fas fa-check text-success text-sm"></i>
+                                        </div>
+                                        <span>优先保证均衡饮食，补剂只是辅助</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <div class="bg-success/10 rounded-full p-1 mt-1 mr-3">
+                                            <i class="fas fa-check text-success text-sm"></i>
+                                        </div>
+                                        <span>根据个人目标选择合适的补剂类型</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <div class="bg-success/10 rounded-full p-1 mt-1 mr-3">
+                                            <i class="fas fa-check text-success text-sm"></i>
+                                        </div>
+                                        <span>严格遵循产品说明的推荐剂量</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <div class="bg-success/10 rounded-full p-1 mt-1 mr-3">
+                                            <i class="fas fa-check text-success text-sm"></i>
+                                        </div>
+                                        <span>重要决策前咨询专业人士意见</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="font-weight-bold text-primary mb-4 flex items-center">
+                                <i class="fas fa-question-answer fa-lg mr-2"></i> 常见问题解答
+                            </h5>
+                            
+                            <div class="space-y-4">
+                                <div class="p-4 bg-gradient-to-r from-primary/5 to-white rounded-xl border-l-4 border-primary shadow-sm">
+                                    <h6 class="font-weight-bold mb-2 text-primary">补剂有副作用吗？</h6>
+                                    <p class="text-sm text-muted">大多数补剂在推荐剂量下是安全的，但过量使用可能会导致副作用。始终遵循产品说明，并在有疑问时咨询医生或营养师。</p>
+                                </div>
+                                
+                                <div class="p-4 bg-gradient-to-r from-info/5 to-white rounded-xl border-l-4 border-info shadow-sm">
+                                    <h6 class="font-weight-bold mb-2 text-info">新手应该使用补剂吗？</h6>
+                                    <p class="text-sm text-muted">新手应优先关注饮食、训练和休息，待基础建立后再考虑补剂。蛋白质粉可能是新手最常用的补剂选择。</p>
+                                </div>
+                                
+                                <div class="p-4 bg-gradient-to-r from-success/5 to-white rounded-xl border-l-4 border-success shadow-sm">
+                                    <h6 class="font-weight-bold mb-2 text-success">如何选择优质补剂？</h6>
+                                    <p class="text-sm text-muted">选择知名品牌、有第三方测试、成分简单明确的产品，并查看用户评价和专业推荐。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 加载更多按钮 -->
+        <div class="col-12 text-center mt-8 mb-12" id="load-more-container">
+            <button id="load-more" class="btn btn-outline-primary rounded-lg px-6 py-3 shadow-sm hover:shadow-md transition-all transform hover:scale-105">
+                <i class="fas fa-sync-alt mr-2"></i>加载更多
+            </button>
+        </div>
+        
+        <!-- 比较工具栏 -->
+        <div id="compare-toolbar" class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-3 z-50 transform translate-y-full transition-transform duration-300">
+            <div class="container mx-auto">
+                <div class="flex flex-wrap justify-between items-center">
+                    <div class="mb-2 sm:mb-0">
+                        <span class="text-gray-700 font-medium"><span id="compare-count">0</span> 个产品待比较</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="clear-compare" class="btn btn-sm btn-outline-secondary">清除选择</button>
+                        <button id="compare-products" class="btn btn-sm btn-primary" disabled>产品比较</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 页面背景美化 */
+    body {
+        background-color: #f8f9fa;
+        background-image: 
+            radial-gradient(#4285f415 1px, transparent 1px),
+            radial-gradient(#4285f415 1px, transparent 1px);
+        background-size: 40px 40px;
+        background-position: 0 0, 20px 20px;
+    }
+    
+    /* 补剂图片容器样式 */
+    .supplement-image-container {
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover .supplement-image-container {
+        transform: scale(1.05);
+    }
+    
+    /* 图片加载效果 */
+    .supplement-image-container img {
+        transition: all 0.3s ease;
+    }
+    
+    /* 功效标签容器样式 */
+    .benefits-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    /* 卡片悬停效果增强 */
+    .card {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* 按钮悬停效果 */
+    .btn {
+        transition: all 0.3s ease;
+    }
+    
+    /* 标签样式优化 */
+    .badge {
+        transition: all 0.3s ease;
+    }
+    
+    .badge:hover {
+        transform: scale(1.05);
+    }
+    
+    /* 文本截断 */
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* 平滑滚动 */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    /* 补剂容器动画 */
+    #supplements-container {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    /* 比较工具栏样式 */
+    #compare-toolbar {
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 产品比较复选框样式 */
+    .compare-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    /* 加载更多按钮样式 */
+    #load-more {
+        transition: all 0.3s ease;
+    }
+    
+    #load-more:hover {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 576px) {
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+        
+        h2.display-4 {
+            font-size: 1.75rem;
+        }
+        
+        .supplement-image-container {
+            height: 180px;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .row {
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+        
+        .col-md-6, .col-lg-4 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        .h-100 {
+            height: auto !important;
+        }
+        
+        .benefits-container {
+            gap: 6px;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .gap-8 {
+            gap: 1rem;
+        }
+        
+        .col-12.mt-16 {
+            margin-top: 4rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化变量
+        let currentPage = 1;
+        let selectedCompareProducts = new Set();
+        const supplementsContainer = document.getElementById('supplements-container');
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const resultCountElement = document.getElementById('search-result-count');
+        let searchTimeout;
+        
+        // 预加载图片以提高用户体验
+        const preloadImages = () => {
+            const images = document.querySelectorAll('.supplement-image-container img');
+            images.forEach(img => {
+                const src = img.src;
+                const newImg = new Image();
+                newImg.src = src;
+            });
+        };
+        
+        // 防抖函数
+        function debounce(func, delay) {
+            return function(...args) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+        
+        // 获取当前筛选条件
+        function getCurrentFilters() {
+            const selectedType = document.querySelector('.btn[data-type].bg-primary')?.getAttribute('data-type') || '全部';
+            const sortSelect = document.getElementById('sort-select');
+            const sortValue = sortSelect ? sortSelect.value : 'default';
+            const keyword = searchInput ? searchInput.value.trim() : '';
+            
+            console.log('当前筛选条件:', { selectedType, sortValue, keyword });
+            return { selectedType, sortValue, keyword };
+        }
+        
+        // 构建查询URL
+        function buildQueryUrl(filters, page = 1) {
+            const queryParams = new URLSearchParams();
+            
+            if (filters.selectedType !== '全部') {
+                queryParams.append('type', filters.selectedType);
+            }
+            if (filters.keyword) {
+                queryParams.append('keyword', filters.keyword);
+            }
+            if (filters.sortValue && filters.sortValue !== 'default') {
+                queryParams.append('sort', filters.sortValue);
+            }
+            if (page > 1) {
+                queryParams.append('page', page);
+            }
+            
+            const url = `/supplements?${queryParams.toString()}`;
+            console.log('构建的查询URL:', url);
+            return url;
+        }
+        
+        // 更新补剂列表
+        function updateSupplementsList(url, isLoadMore = false) {
+            if (!isLoadMore) {
+                // 添加加载动画
+                supplementsContainer.innerHTML = '<div class="col-12 text-center py-12"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3 text-primary">加载中...</p></div>';
+            }
+            
+            // 使用Fetch API进行无刷新请求
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // 创建临时DOM元素来解析HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    
+                    // 获取新的supplements-container内容
+                    const newContainer = tempDiv.querySelector('#supplements-container');
+                    const newResultCount = tempDiv.querySelector('#search-result-count')?.textContent || '';
+                    
+                    if (newContainer) {
+                        if (isLoadMore) {
+                            // 加载更多模式：提取新卡片并添加
+                            const newCards = Array.from(newContainer.querySelectorAll('.supplement-card'));
+                            if (newCards.length > 0) {
+                                newCards.forEach(card => {
+                                    supplementsContainer.appendChild(card);
+                                });
+                                // 重新绑定事件
+                                bindCardEvents();
+                                bindAddToCartEvents();
+                                bindCompareEvents();
+                                // 预加载新图片
+                                preloadImages();
+                            } else {
+                                // 没有更多数据
+                                const loadMoreContainer = document.getElementById('load-more-container');
+                                if (loadMoreContainer) {
+                                    loadMoreContainer.innerHTML = '<p class="text-muted">没有更多产品了</p>';
+                                }
+                            }
+                        } else {
+                            // 普通更新模式：直接替换内容，避免淡入淡出导致的闪烁
+                            supplementsContainer.innerHTML = newContainer.innerHTML;
+                            if (newResultCount) {
+                                resultCountElement.textContent = newResultCount;
+                            }
+                            
+                            // 重新绑定所有事件，因为容器内容被替换了
+                            bindCardEvents();
+                            bindAddToCartEvents();
+                            bindCompareEvents();
+                            bindFilterEvents();
+                            bindSortEvents();
+                            
+                            // 预加载新图片
+                            preloadImages();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('请求出错:', error);
+                    if (!isLoadMore) {
+                        supplementsContainer.innerHTML = '<div class="col-12 text-center py-12 bg-white rounded-xl shadow-md"><i class="fas fa-exclamation-circle text-danger fa-3x mb-4"></i><p class="text-danger mb-2">加载失败</p><button class="btn btn-primary mt-2" onclick="window.location.reload()">重试</button></div>';
+                    }
+                });
+        }
+        
+        // 绑定补剂卡片点击事件
+        function bindCardEvents() {
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // 排除按钮点击事件和比较复选框，避免干扰加入购物车功能
+                    if (!e.target.closest('.btn') && !e.target.closest('.compare-checkbox') && !e.target.closest('.form-check-label')) {
+                        const detailLink = this.querySelector('a[href^="/supplements/"]');
+                        if (detailLink) {
+                            window.location.href = detailLink.getAttribute('href');
+                        }
+                    }
+                });
+            });
+        }
+        
+        // 绑定加入购物车按钮事件 - 仅添加点击动画，实际加入购物车逻辑由common.js处理
+        function bindAddToCartEvents() {
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // 阻止事件冒泡，防止触发卡片点击事件导致页面跳转
+                    e.stopPropagation();
+                    
+                    // 添加点击动画
+                    this.classList.add('scale-95');
+                    setTimeout(() => {
+                        this.classList.remove('scale-95');
+                    }, 150);
+                });
+            });
+        }
+        
+        // 绑定比较相关事件
+        function bindCompareEvents() {
+            // 比较复选框事件
+            document.querySelectorAll('.compare-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function(e) {
+                    e.stopPropagation(); // 防止触发卡片点击事件
+                    const supplementId = this.getAttribute('data-id');
+                    
+                    if (supplementId) {
+                        if (this.checked) {
+                            if (selectedCompareProducts.size >= 3) {
+                                alert('最多只能比较3个产品');
+                                this.checked = false;
+                                return;
+                            }
+                            selectedCompareProducts.add(supplementId);
+                        } else {
+                            selectedCompareProducts.delete(supplementId);
+                        }
+                        
+                        updateCompareToolbar();
+                    }
+                });
+            });
+        }
+        
+        // 更新比较工具栏
+        function updateCompareToolbar() {
+            const toolbar = document.getElementById('compare-toolbar');
+            const countEl = document.getElementById('compare-count');
+            const compareBtn = document.getElementById('compare-products');
+            const clearBtn = document.getElementById('clear-compare');
+            
+            if (countEl) countEl.textContent = selectedCompareProducts.size;
+            if (compareBtn) compareBtn.disabled = selectedCompareProducts.size < 2;
+            
+            if (toolbar) {
+                if (selectedCompareProducts.size > 0) {
+                    toolbar.classList.remove('translate-y-full');
+                } else {
+                    toolbar.classList.add('translate-y-full');
+                }
+            }
+        }
+        
+        // 绑定筛选按钮事件
+        function bindFilterEvents() {
+            // 只绑定一次事件，避免重复绑定
+            const filterButtons = document.querySelectorAll('.btn[data-type]');
+            filterButtons.forEach(button => {
+                // 移除可能存在的事件监听器
+                button.replaceWith(button.cloneNode(true));
+            });
+            
+            // 重新获取按钮并绑定事件
+            const freshButtons = document.querySelectorAll('.btn[data-type]');
+            freshButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 获取选择的类别
+                    const selectedType = this.getAttribute('data-type');
+                    
+                    // 添加点击动画
+                    this.classList.add('scale-95');
+                    setTimeout(() => {
+                        this.classList.remove('scale-95');
+                    }, 150);
+                    
+                    // 更新按钮样式
+                    freshButtons.forEach(btn => {
+                        btn.classList.remove('bg-primary', 'text-white');
+                        btn.classList.add('bg-white', 'text-primary', 'border', 'border-primary', 'hover:bg-primary', 'hover:text-white', 'transition-colors');
+                    });
+                    this.classList.remove('bg-white', 'text-primary', 'border', 'border-primary', 'hover:bg-primary', 'hover:text-white', 'transition-colors');
+                    this.classList.add('bg-primary', 'text-white');
+                    
+                    // 直接构建筛选条件，不依赖getCurrentFilters()
+                    const sortSelect = document.getElementById('sort-select');
+                    const sortValue = sortSelect ? sortSelect.value : 'default';
+                    const keyword = searchInput ? searchInput.value.trim() : '';
+                    
+                    const filters = {
+                        selectedType: selectedType,
+                        sortValue: sortValue,
+                        keyword: keyword
+                    };
+                    
+                    // 构建查询URL并更新补剂列表
+                    const queryUrl = buildQueryUrl(filters);
+                    updateSupplementsList(queryUrl);
+                });
+            });
+        }
+        
+        // 绑定排序下拉菜单事件
+        function bindSortEvents() {
+            const sortSelect = document.getElementById('sort-select');
+            if (sortSelect) {
+                // 移除可能存在的事件监听器
+                sortSelect.replaceWith(sortSelect.cloneNode(true));
+                
+                // 重新获取并绑定事件
+                const freshSortSelect = document.getElementById('sort-select');
+                freshSortSelect.addEventListener('change', function() {
+                    // 直接构建筛选条件，不依赖getCurrentFilters()
+                    const selectedType = document.querySelector('.btn[data-type].bg-primary')?.getAttribute('data-type') || '全部';
+                    const sortValue = this.value;
+                    const keyword = searchInput ? searchInput.value.trim() : '';
+                    
+                    const filters = {
+                        selectedType: selectedType,
+                        sortValue: sortValue,
+                        keyword: keyword
+                    };
+                    
+                    const queryUrl = buildQueryUrl(filters);
+                    updateSupplementsList(queryUrl);
+                });
+            }
+        }
+        
+        // 执行搜索
+        function performSearch() {
+            const filters = getCurrentFilters();
+            const queryUrl = buildQueryUrl(filters);
+            updateSupplementsList(queryUrl);
+        }
+        
+        // 绑定搜索事件
+        searchButton.addEventListener('click', performSearch);
+        
+        // 添加回车键搜索
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+        
+        // 添加输入时的防抖搜索
+        const debouncedSearch = debounce(performSearch, 500);
+        searchInput.addEventListener('input', debouncedSearch);
+        
+        // 绑定加载更多按钮事件
+        const loadMoreBtn = document.getElementById('load-more');
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function() {
+                const button = this;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 加载中...';
+                button.disabled = true;
+                
+                currentPage++;
+                const filters = getCurrentFilters();
+                const queryUrl = buildQueryUrl(filters, currentPage);
+                
+                updateSupplementsList(queryUrl, true).finally(() => {
+                    // 恢复按钮状态
+                    button.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> 加载更多';
+                    button.disabled = false;
+                });
+            });
+        }
+        
+        // 绑定比较工具栏事件
+        const compareProductsBtn = document.getElementById('compare-products');
+        const clearCompareBtn = document.getElementById('clear-compare');
+        
+        if (compareProductsBtn) {
+            compareProductsBtn.addEventListener('click', function() {
+                if (selectedCompareProducts.size < 2) return;
+                
+                const productIds = Array.from(selectedCompareProducts).join(',');
+                window.location.href = `/supplement_compare?ids=${productIds}`;
+            });
+        }
+        
+        if (clearCompareBtn) {
+            clearCompareBtn.addEventListener('click', function() {
+                selectedCompareProducts.clear();
+                document.querySelectorAll('.compare-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                updateCompareToolbar();
+            });
+        }
+        
+        // 初始绑定事件
+    bindCardEvents();
+    bindAddToCartEvents();
+    bindCompareEvents();
+    bindFilterEvents();
+    bindSortEvents();
+    
+    // 预加载图片
+    preloadImages();
+    });
+</script>
+{% endblock %}

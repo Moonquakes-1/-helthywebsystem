@@ -1,0 +1,336 @@
+{% extends "tcm/tcm_base.html" %}
+
+{% block title %}AI 远程问诊助手{% endblock %}
+
+{% block css %}
+<style>
+    .chat-container { height: calc(100vh - 180px); display: flex; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    /* 左侧历史列表 */
+    .chat-sidebar { width: 280px; background: #f8f9fa; border-right: 1px solid #eee; display: flex; flex-direction: column; }
+    .sidebar-header { padding: 20px; border-bottom: 1px solid #eee; }
+    .history-list { flex: 1; overflow-y: auto; padding: 10px; }
+    .history-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 5px; transition: 0.2s; }
+    .history-item:hover { background: #e9ecef; }
+    .history-item.active { background: #2e8b57; color: white; }
+    .history-title { font-weight: bold; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-date { font-size: 0.75rem; opacity: 0.8; margin-top: 4px; }
+
+    /* 右侧聊天区 */
+    .chat-main { flex: 1; display: flex; flex-direction: column; background: #fcfcfc; }
+    .chat-header { padding: 20px; background: linear-gradient(135deg, #cc7832 0%, #a65d21 100%); color: white; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 30px; }
+
+    /* 气泡与排版样式优化 */
+    .msg-row { display: flex; margin-bottom: 20px; }
+    .msg-row.ai { justify-content: flex-start; }
+    .msg-row.user { justify-content: flex-end; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white; flex-shrink: 0; }
+    .ai .avatar { background: #cc7832; margin-right: 15px; }
+    .user .avatar { background: #2e8b57; margin-left: 15px; }
+
+    /* 内容包裹层，确保气泡和语音按钮对齐 */
+    .msg-content-wrapper { max-width: 75%; display: flex; flex-direction: column; }
+    .ai .msg-content-wrapper { align-items: flex-start; }
+    .user .msg-content-wrapper { align-items: flex-end; }
+
+    .msg-bubble { padding: 15px 20px; border-radius: 16px; line-height: 1.6; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03); word-wrap: break-word; }
+    .ai .msg-bubble { background: #fff; border: 1px solid #eee; border-top-left-radius: 4px; color: #333; }
+    .user .msg-bubble { background: #2e8b57; color: white; border-top-right-radius: 4px; }
+
+    /* 新增：语音播报按钮样式 */
+    .tts-btn {
+        background: none; border: none; color: #cc7832; font-size: 0.85rem; cursor: pointer;
+        margin-top: 8px; padding: 4px 8px; border-radius: 20px; display: inline-flex; align-items: center;
+        background-color: rgba(204, 120, 50, 0.1); transition: 0.2s;
+    }
+    .tts-btn:hover { background-color: rgba(204, 120, 50, 0.2); color: #a65d21; }
+    .tts-btn i { margin-right: 5px; font-size: 1rem; }
+    .tts-btn.playing { background-color: rgba(46, 139, 87, 0.1); color: #2e8b57; animation: pulse 1.5s infinite; }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(46, 139, 87, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(46, 139, 87, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(46, 139, 87, 0); }
+    }
+
+    /* 输入区 */
+    .chat-input-area { padding: 20px; background: #fff; border-top: 1px solid #eee; }
+    .input-group-custom { display: flex; border: 2px solid #e9ecef; border-radius: 30px; overflow: hidden; transition: 0.3s; }
+    .input-group-custom:focus-within { border-color: #cc7832; }
+    .input-group-custom input { border: none; padding: 15px 25px; outline: none; width: 100%; }
+    .send-btn { background: #cc7832; color: white; border: none; width: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+    .send-btn:hover { background: #a65d21; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 px-4">
+    <h3 class="mb-4 fw-bold" style="color: #5c3a21;"><i class="bi bi-robot"></i> AI 中医问诊管家</h3>
+
+    <div class="chat-container">
+        <div class="chat-sidebar">
+            <div class="sidebar-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-secondary"><i class="bi bi-clock-history"></i> 历史问诊</span>
+                <button class="btn btn-sm btn-outline-success rounded-pill" onclick="createNewSession()">+ 新建</button>
+            </div>
+            <div class="history-list" id="historyList">
+                </div>
+        </div>
+
+        <div class="chat-main">
+            <div class="chat-header">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-heart-pulse"></i> 资深中医 AI 助手</h5>
+                <small class="opacity-75">基于大模型，为您提供中西医结合的用药与调理参考</small>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                </div>
+
+            <div class="chat-input-area">
+                <div class="input-group-custom">
+                    <input type="text" id="userInput" placeholder="请描述您的症状（如：最近老是失眠多梦，肠胃也不好）..." onkeypress="if(event.keyCode==13) sendMessage()">
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()"><i class="bi bi-send-fill"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const STORAGE_KEY = 'tcm_chat_history_{{ username }}';
+    let chatSessions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let currentSessionId = null;
+
+    const initialGreeting = "您好！我是中医 AI 助手，请问有什么可以帮助您的？您可以详细描述一下您的症状，我会为您进行辨证并提供调理建议。";
+
+    // 初始化页面
+    document.addEventListener("DOMContentLoaded", () => {
+        if (chatSessions.length === 0) {
+            createNewSession();
+        } else {
+            loadSession(chatSessions[0].id);
+        }
+        renderHistoryList();
+    });
+
+    // 【修复1】：渲染左侧列表，解决 undefined 问题
+    function renderHistoryList() {
+        const listDiv = document.getElementById('historyList');
+        listDiv.innerHTML = '';
+        chatSessions.forEach(session => {
+            const isActive = session.id === currentSessionId ? 'active' : '';
+            // 安全提取用户说的第一句话作为标题，如果没有则显示“新问诊”
+            const userMsg = session.messages.find(m => m.role === 'user');
+            const title = userMsg ? (userMsg.content.substring(0, 12) + (userMsg.content.length > 12 ? "..." : "")) : "新问诊";
+
+            listDiv.innerHTML += `
+                <div class="history-item ${isActive}" onclick="loadSession(${session.id})">
+                    <div class="history-title">${title}</div>
+                    <div class="history-date">${new Date(session.id).toLocaleString()}</div>
+                </div>
+            `;
+        });
+    }
+
+    function createNewSession() {
+        // 如果当前就是一个空的“新问诊”，就不重复创建
+        const current = chatSessions.find(s => s.id === currentSessionId);
+        if (current && current.messages.length === 1) return;
+
+        currentSessionId = Date.now();
+        const newSession = {
+            id: currentSessionId,
+            messages: [{ role: 'ai', content: initialGreeting }]
+        };
+        chatSessions.unshift(newSession);
+        saveToLocal();
+        renderHistoryList();
+        renderMessages();
+
+        // 切换会话时停止播放语音
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    function loadSession(id) {
+        currentSessionId = id;
+        renderHistoryList();
+        renderMessages();
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    function saveToLocal() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(chatSessions));
+    }
+
+    function getCurrentSession() {
+        return chatSessions.find(s => s.id === currentSessionId);
+    }
+
+    // 渲染聊天框内容
+    function renderMessages() {
+        const box = document.getElementById('chatMessages');
+        box.innerHTML = '';
+        const session = getCurrentSession();
+        if (!session) return;
+
+        session.messages.forEach(msg => {
+            appendMessageHTML(msg.role, msg.content, true);
+        });
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // 在页面上插入一条消息的 HTML
+    function appendMessageHTML(role, content, isMarkdown = false) {
+        const box = document.getElementById('chatMessages');
+        const displayContent = isMarkdown && role === 'ai' ? marked.parse(content) : content;
+
+        // 生成唯一的气泡 ID 供语音播报使用
+        const msgId = 'msg_' + Date.now() + Math.floor(Math.random() * 1000);
+
+        // 渲染历史记录时，直接带上播报按钮
+        let ttsHtml = '';
+        if (role === 'ai' && !content.includes('思考中')) {
+            ttsHtml = `<button class="tts-btn" onclick="speakText(this, '${msgId}')"><i class="bi bi-volume-up-fill"></i> <span class="tts-text">语音播报</span></button>`;
+        }
+
+        const html = `
+            <div class="msg-row ${role}">
+                ${role === 'ai' ? '<div class="avatar"><i class="bi bi-robot"></i></div>' : ''}
+                <div class="msg-content-wrapper">
+                    <div class="msg-bubble" id="${msgId}">${displayContent}</div>
+                    ${ttsHtml}
+                </div>
+                ${role === 'user' ? '<div class="avatar"><i class="bi bi-person"></i></div>' : ''}
+            </div>
+        `;
+        box.insertAdjacentHTML('beforeend', html);
+        box.scrollTop = box.scrollHeight;
+        return document.getElementById(msgId); // 返回元素实体
+    }
+
+    // 发送消息并调用后端流式 API
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = true;
+
+        const session = getCurrentSession();
+        session.messages.push({ role: 'user', content: text });
+        appendMessageHTML('user', text);
+        saveToLocal();
+        renderHistoryList();
+
+        // 准备 AI 回复的泡泡
+        const aiBubble = appendMessageHTML('ai', '<span class="spinner-border spinner-border-sm text-warning" role="status"></span> 思考中...');
+        let aiFullText = "";
+
+        try {
+            const response = await fetch('/tcm/consult/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            if (!response.ok) throw new Error('网络请求失败');
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            aiBubble.innerHTML = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunkStr = decoder.decode(value, { stream: true });
+                const lines = chunkStr.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const jsonStr = line.replace('data: ', '').trim();
+                        if (!jsonStr) continue;
+                        try {
+                            const data = JSON.parse(jsonStr);
+                            if (data.content) {
+                                aiFullText += data.content;
+                                aiBubble.innerHTML = marked.parse(aiFullText);
+                                document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+                            } else if (data.error) {
+                                aiFullText = "抱歉，连接大模型出错：" + data.error;
+                                aiBubble.innerHTML = aiFullText;
+                            }
+                        } catch (e) {}
+                    }
+                }
+            }
+
+            // 对话结束，保存消息
+            session.messages.push({ role: 'ai', content: aiFullText });
+            saveToLocal();
+
+            // 【新增】：流式输出结束后，在气泡下方追加【语音播报】按钮
+            const ttsBtnHtml = `<button class="tts-btn" onclick="speakText(this, '${aiBubble.id}')"><i class="bi bi-volume-up-fill"></i> <span class="tts-text">语音播报</span></button>`;
+            aiBubble.insertAdjacentHTML('afterend', ttsBtnHtml);
+
+        } catch (error) {
+            aiBubble.innerHTML = "网络错误，请稍后再试。";
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+
+    // 【新增核心功能2】：Web Speech API 语音播报
+    let currentUtterance = null;
+    function speakText(btnElement, elementId) {
+        if ('speechSynthesis' in window) {
+            // 如果点的是正在播放的按钮，则停止播放
+            if (window.speechSynthesis.speaking && btnElement.classList.contains('playing')) {
+                window.speechSynthesis.cancel();
+                resetAllTTSButtons();
+                return;
+            }
+
+            // 播放新内容前，先停止其他声音
+            window.speechSynthesis.cancel();
+            resetAllTTSButtons();
+
+            // 提取纯文本（过滤掉 HTML 标签，如 <strong>, <br> 等）
+            const htmlContent = document.getElementById(elementId).innerHTML;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            let textToSpeak = tempDiv.textContent || tempDiv.innerText || "";
+
+            if (!textToSpeak) return;
+
+            currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
+            currentUtterance.lang = 'zh-CN'; // 设置中文发音
+            currentUtterance.rate = 1.1;     // 语速微调，听起来更干练
+
+            currentUtterance.onstart = function() {
+                btnElement.classList.add('playing');
+                btnElement.innerHTML = '<i class="bi bi-stop-circle-fill"></i> <span class="tts-text">停止播报</span>';
+            };
+
+            currentUtterance.onend = function() { resetAllTTSButtons(); };
+            currentUtterance.onerror = function() { resetAllTTSButtons(); };
+
+            window.speechSynthesis.speak(currentUtterance);
+        } else {
+            alert("抱歉，您的浏览器不支持语音播报功能（推荐使用 Chrome 或 Edge）。");
+        }
+    }
+
+    function resetAllTTSButtons() {
+        document.querySelectorAll('.tts-btn').forEach(btn => {
+            btn.classList.remove('playing');
+            btn.innerHTML = '<i class="bi bi-volume-up-fill"></i> <span class="tts-text">语音播报</span>';
+        });
+    }
+</script>
+{% endblock %}

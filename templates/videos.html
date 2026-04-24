@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}精选视频 - 健康管理系统{% endblock %}
+
+{% block css %}
+<style>
+    /* 1. 全局背景：正常的健身房实景，跟随页面一起滑动 */
+    body {
+        background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), url("https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1920&auto=format&fit=crop") !important;
+        background-attachment: scroll !important;
+        background-size: 100% auto !important;
+        background-repeat: repeat-y !important;
+        background-color: #f5f5f5 !important;
+        color: #333 !important;
+    }
+
+    /* 容器居中与边距 */
+    .video-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+    }
+
+    /* 分类卡片区：正常的白色卡片 */
+    .category-section {
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    /* 标题样式：正常深色文字，红色指示条 */
+    .section-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 24px;
+        padding-left: 14px;
+        border-left: 4px solid #dc3545;
+        letter-spacing: 1px;
+    }
+
+    /* 左播放器 + 右列表 布局 */
+    .player-layout {
+        display: flex;
+        gap: 20px;
+    }
+
+    /* 左侧巨型播放器 */
+    .player-left {
+        flex: 7;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        padding-top: 39.375%;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .player-left iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    /* 右侧正常播放列表：浅灰背景 */
+    .playlist-right {
+        flex: 3;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 12px;
+        overflow-y: auto;
+        max-height: 450px;
+        border: 1px solid #eaeaea;
+    }
+
+    /* 正常的滚动条样式 */
+    .playlist-right::-webkit-scrollbar {
+        width: 6px;
+    }
+    .playlist-right::-webkit-scrollbar-track {
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+    .playlist-right::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+    .playlist-right::-webkit-scrollbar-thumb:hover {
+        background: #aaa;
+    }
+
+    /* 列表项样式：纯白底色卡片 */
+    .playlist-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        border-radius: 8px;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    }
+
+    /* 鼠标悬浮特效 */
+    .playlist-item:hover {
+        background-color: #fdfdfd;
+        transform: translateX(4px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border-color: #eee;
+    }
+
+    /* 当前正在播放的视频高亮状态：清爽的渐变橘色 */
+    .playlist-item.active {
+        background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+        box-shadow: 0 4px 15px rgba(255, 126, 95, 0.3);
+        border-color: transparent;
+    }
+
+    .playlist-thumb {
+        width: 100px;
+        height: 60px;
+        background-color: #eee;
+        margin-right: 15px;
+        border-radius: 4px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid #eee;
+    }
+
+    .playlist-title {
+        font-size: 15px;
+        font-weight: 500;
+        color: #444;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.4;
+    }
+
+    /* 激活状态下，标题文字改为白色 */
+    .playlist-item.active .playlist-title {
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    /* 响应式 */
+    @media (max-width: 992px) {
+        .player-layout {
+            flex-direction: column;
+        }
+        .player-left {
+            padding-top: 56.25%;
+        }
+        .playlist-right {
+            max-height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="video-container">
+
+    {% if user_constitution != "尚未评测" %}
+    <div class="alert shadow-sm border-0 mb-4 d-flex align-items-center" style="background: linear-gradient(135deg, #e1f5e8 0%, #d4edda 100%); border-radius: 12px; border-left: 5px solid #2e8b57 !important;">
+        <i class="bi bi-robot fs-3 me-3" style="color: #2e8b57;"></i>
+        <div>
+            <h6 class="mb-1" style="color: #1e5c3a; font-weight: bold;">
+                <i class="bi bi-link-45deg"></i> 中西医健康联动
+            </h6>
+            <p class="mb-0 text-dark small">{{ ai_advice }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% set display_categories = ['减脂燃脂', '增肌塑形', '力量提升', '核心稳定', '体态矫正', '柔韧拉伸'] %}
+
+    {% for cat in display_categories %}
+        {% set section_index = loop.index %}
+
+        {% set ns = namespace(count=0, first_video=none) %}
+        {% for video in videos_list %}
+            {% if video.category == cat %}
+                {% set ns.count = ns.count + 1 %}
+                {% if ns.count == 1 %}
+                    {% set ns.first_video = video %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        {% if ns.count > 0 %}
+        <div class="category-section">
+            <h2 class="section-title">{{ cat }}</h2>
+
+            <div class="player-layout">
+                <div class="player-left">
+                    <iframe id="player-{{ section_index }}"
+                            src="{{ ns.first_video.video_url }}&autoplay=0"
+                            allowfullscreen="true"
+                            scrolling="no"
+                            border="0"
+                            frameborder="no"
+                            framespacing="0">
+                    </iframe>
+                </div>
+
+                <div class="playlist-right" id="playlist-{{ section_index }}">
+                    {% for video in videos_list %}
+                        {% if video.category == cat %}
+                        <div class="playlist-item {% if video.id == ns.first_video.id %}active{% endif %}"
+                             onclick="changeVideo('player-{{ section_index }}', '{{ video.video_url }}', this)">
+                            <img src="{{ video.thumbnail }}" class="playlist-thumb" alt="封面"
+                                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=200&auto=format&fit=crop';">
+                            <div class="playlist-title">
+                                {{ video.title }}
+
+                                {% if video.category in recommend_categories %}
+                                    <div class="mt-1">
+                                        <span class="badge rounded-pill" style="background-color: #2e8b57; border: 1px solid #fff; box-shadow: 0 2px 5px rgba(46,139,87,0.3); font-size: 0.7rem; font-weight: normal;">
+                                            <i class="bi bi-stars"></i> AI体质适配
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    function changeVideo(playerId, videoUrl, element) {
+        let modifiedUrl = videoUrl;
+        if (modifiedUrl.indexOf('autoplay=') === -1) {
+            modifiedUrl += "&autoplay=0";
+        } else {
+            modifiedUrl = modifiedUrl.replace('autoplay=1', 'autoplay=0');
+        }
+
+        document.getElementById(playerId).src = modifiedUrl;
+
+        let siblings = element.parentElement.children;
+        for(let i = 0; i < siblings.length; i++) {
+            siblings[i].classList.remove('active');
+        }
+
+        element.classList.add('active');
+    }
+</script>
+{% endblock %}

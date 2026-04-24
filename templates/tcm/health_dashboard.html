@@ -1,0 +1,587 @@
+{% extends "tcm/tcm_base.html" %}
+
+{% block title %}数据中心 - 智慧健康系统{% endblock %}
+
+{% block css %}
+<style>
+    /* ================= 修复侧边栏头像过大/溢出变形的问题 ================= */
+    .sidebar img,
+    .user-profile img,
+    [class*="avatar"] img,
+    img[src*="avatar"] {
+        object-fit: cover !important;
+        object-position: center !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    body { background: #f1f5f9; }
+
+    /* 现代医学/健身卡片风格 */
+    .dashboard-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        padding: 24px;
+        margin-bottom: 24px;
+        height: calc(100% - 24px); /* 保持等高 */
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .dashboard-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06); }
+
+    .card-header-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* 左侧小组件 */
+    .metric-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        border-left: 4px solid transparent;
+    }
+    .metric-info h5 { margin: 0; font-size: 0.95rem; color: #334155; font-weight: 700; }
+    .metric-info p { margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b; }
+    .metric-value {
+        font-size: 1.3rem; font-weight: 800; background: white; padding: 6px 14px;
+        border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .val-blue { color: #0284c7; border-left-color: #0284c7; }
+    .val-purple { color: #7c3aed; border-left-color: #7c3aed; }
+    .val-green { color: #10b981; border-left-color: #10b981; }
+
+    /* 分析状态条 */
+    .analysis-bar {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px; padding: 18px;
+        display: flex; align-items: center; gap: 15px;
+        color: #047857; font-weight: 600; margin-bottom: 24px;
+    }
+
+    /* 今日训练计划列表 */
+    .plan-list { list-style: none; padding: 0; margin: 0; }
+    .plan-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 0; border-bottom: 1px dashed #e2e8f0;
+    }
+    .plan-item:last-child { border-bottom: none; }
+    .plan-left { display: flex; align-items: center; gap: 15px; }
+    .plan-icon {
+        width: 38px; height: 38px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .icon-pending { background: #f1f5f9; color: #64748b; }
+    .icon-done { background: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+    .plan-text h6 { margin: 0; font-size: 0.95rem; color: #1e293b; font-weight: 600; }
+    .plan-text.done h6 { text-decoration: line-through; color: #94a3b8; }
+    .plan-text p { margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b; }
+
+    .check-btn {
+        width: 28px; height: 28px; border-radius: 50%;
+        border: 2px solid #cbd5e1; background: transparent;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.2s; color: transparent;
+    }
+    .check-btn.checked { background: #10b981; border-color: #10b981; color: white; }
+
+    /* 图表容器 */
+    .chart-container { position: relative; height: 260px; width: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* 仪表盘全局底色调整为高级灰白 */
+    body { background-color: #f8fafc !important; }
+
+    /* 高级悬浮卡片 */
+    .premium-dash-card {
+        background: #ffffff;
+        border-radius: 24px; /* 大圆角 */
+        border: 1px solid rgba(226, 232, 240, 0.6);
+        box-shadow: 0 10px 40px rgba(15, 23, 42, 0.04); /* 极其柔和的阴影 */
+        padding: 40px;
+        margin-bottom: 30px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .premium-dash-card:hover {
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+        transform: translateY(-2px);
+    }
+
+    /* 高级表单控件 */
+    .dash-form-label {
+        font-weight: 600; color: #475569; margin-bottom: 10px; font-size: 0.95rem;
+    }
+    .dash-input {
+        background-color: #f1f5f9;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-size: 1rem;
+        color: #1e293b;
+        transition: all 0.3s ease;
+    }
+    .dash-input:focus {
+        background-color: #ffffff;
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+        outline: none;
+    }
+
+    /* 渐变高级按钮 */
+    .btn-dash-primary {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        padding: 16px;
+        font-weight: 700;
+        font-size: 1.05rem;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px rgba(14, 165, 233, 0.25);
+        transition: all 0.3s;
+    }
+    .btn-dash-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(14, 165, 233, 0.35);
+        color: white;
+    }
+
+    /* 记录列表项优化 */
+    .history-item {
+        border: 1px solid #f1f5f9;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 15px;
+        background: #ffffff;
+        transition: all 0.2s;
+    }
+    .history-item:hover {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+    .icon-box {
+        width: 55px; height: 55px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem; flex-shrink: 0; margin-right: 20px;
+    }
+</style>
+
+<div class="premium-dash-card mt-4">
+    <div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: #f1f5f9 !important;">
+        <i class="bi bi-activity" style="font-size: 2rem; color: #0ea5e9; margin-right: 15px;"></i>
+        <div>
+            <h3 style="font-weight: 800; color: #0f172a; margin: 0; font-size: 1.5rem;">每日训练追踪</h3>
+            <p class="text-muted mb-0" style="font-size: 0.95rem; margin-top: 5px;">记录您的运动数据，系统将自动分析您的消耗与心肺提升状况。</p>
+        </div>
+    </div>
+
+    <div class="row g-5 mt-2">
+        <div class="col-lg-5 border-end pe-lg-5" style="border-color: #f1f5f9 !important;">
+            <form id="trainingLogForm">
+                <div class="mb-4">
+                    <label class="dash-form-label">运动日期</label>
+                    <input type="date" class="form-control dash-input" id="workoutDate" required>
+                </div>
+                <div class="mb-4">
+                    <label class="dash-form-label">运动类型</label>
+                    <select class="form-select dash-input" id="workoutType" required>
+                        <option value="">请选择训练模式...</option>
+                        <option value="跑步">🏃 跑步 (有氧)</option>
+                        <option value="力量训练">🏋️ 力量训练 (无氧)</option>
+                        <option value="游泳">🏊 游泳 (全身有氧)</option>
+                        <option value="瑜伽">🧘 瑜伽 (柔韧/核心)</option>
+                        <option value="HIIT">⚡ HIIT (高强度间歇)</option>
+                    </select>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <label class="dash-form-label">时长 (分钟)</label>
+                        <input type="number" class="form-control dash-input" id="workoutDuration" placeholder="例: 45" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="dash-form-label">预估消耗 (Kcal)</label>
+                        <input type="number" class="form-control dash-input" id="workoutCalories" placeholder="例: 350">
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <label class="dash-form-label">体感与备注</label>
+                    <textarea class="form-control dash-input" id="workoutNotes" rows="2" placeholder="记录今天的状态，例如：核心发力感很好"></textarea>
+                </div>
+                <button type="button" class="btn-dash-primary w-100" onclick="submitTrainingLog()">
+                    <i class="bi bi-cloud-arrow-up me-2"></i> 同步至数据中心
+                </button>
+            </form>
+        </div>
+
+        <div class="col-lg-7 ps-lg-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 style="font-weight: 700; color: #1e293b; margin: 0;">近期训练日志</h5>
+                <a href="#" style="color: #0ea5e9; font-weight: 600; text-decoration: none; font-size: 0.95rem;">查看完整报表 <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div id="trainingHistoryList">
+                <div class="history-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box" style="background: #e0f2fe; color: #0284c7;">🏃</div>
+                        <div>
+                            <h6 style="font-weight: 700; color: #0f172a; margin-bottom: 5px; font-size: 1.1rem;">户外慢跑 / 燃脂区</h6>
+                            <span style="color: #64748b; font-size: 0.9rem;"><i class="bi bi-clock me-1"></i> 45 分钟 &nbsp;|&nbsp; 2026-04-12</span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size: 1.25rem; font-weight: 800; color: #ef4444;">-320 <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">KCAL</span></div>
+                    </div>
+                </div>
+
+                <div class="history-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box" style="background: #fef08a; color: #ca8a04;">🏋️</div>
+                        <div>
+                            <h6 style="font-weight: 700; color: #0f172a; margin-bottom: 5px; font-size: 1.1rem;">胸背抗阻训练</h6>
+                            <span style="color: #64748b; font-size: 0.9rem;"><i class="bi bi-clock me-1"></i> 60 分钟 &nbsp;|&nbsp; 2026-04-10</span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div style="font-size: 1.25rem; font-weight: 800; color: #ef4444;">-450 <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">KCAL</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid px-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="font-weight: 800; color: #0f172a; margin: 0;"><i class="bi bi-activity text-primary me-2"></i> 核心数据洞察矩阵</h2>
+        <div>
+            <button class="btn btn-outline-secondary rounded-pill px-4 me-2"><i class="bi bi-printer"></i> 打印报告</button>
+            <button class="btn btn-primary rounded-pill px-4"><i class="bi bi-cloud-arrow-down"></i> 导出医疗档案 (PDF)</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-lg-4">
+
+            <div class="analysis-bar">
+                <i class="bi bi-shield-check" style="font-size: 1.8rem;"></i>
+                <div>
+                    <div style="font-size: 0.85rem; color: #065f46;">AI 实时监控中</div>
+                    <span>各项生理指标稳定，当前状态极佳。</span>
+                </div>
+            </div>
+
+            <div class="dashboard-card" style="height: auto;">
+                <div class="metric-box val-blue">
+                    <div class="metric-info">
+                        <h5>血压 (收缩 / 舒张)</h5>
+                        <p>参考值: 90-120 / 60-80</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <div class="metric-value val-blue">120</div>
+                        <span style="color:#cbd5e1; align-self:center;">/</span>
+                        <div class="metric-value val-blue">80</div>
+                    </div>
+                </div>
+                <div class="metric-box val-purple">
+                    <div class="metric-info">
+                        <h5>空腹血糖</h5>
+                        <p>参考值: 3.9-6.1 mmol/L</p>
+                    </div>
+                    <div class="metric-value val-purple">5.0</div>
+                </div>
+                <div class="metric-box val-green">
+                    <div class="metric-info">
+                        <h5>静息心率</h5>
+                        <p>Apple Watch 已同步</p>
+                    </div>
+                    <div class="metric-value val-green">68 <span style="font-size:0.7rem;font-weight:normal;">bpm</span></div>
+                </div>
+            </div>
+
+            <div class="dashboard-card" style="height: auto;">
+                <div class="card-header-title d-flex justify-content-between w-100">
+                    <div><i class="bi bi-calendar2-check text-warning"></i> 训练计划任务</div>
+                    <span class="badge bg-light text-dark border">{{ completed_count }} / {{ today_plan|length }}</span>
+                </div>
+                <div class="progress mb-4" style="height: 6px; border-radius: 3px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ (completed_count / today_plan|length) * 100 }}%"></div>
+                </div>
+
+                <ul class="plan-list">
+                    {% for item in today_plan %}
+                    <li class="plan-item">
+                        <div class="plan-left">
+                            <div class="plan-icon {% if item.completed %}icon-done{% else %}icon-pending{% endif %}">
+                                <i class="bi {{ item.icon }}"></i>
+                            </div>
+                            <div class="plan-text {% if item.completed %}done{% endif %}">
+                                <h6>{{ item.name }}</h6>
+                                <p><i class="bi bi-clock"></i> 预计耗时：{{ item.duration }}</p>
+                            </div>
+                        </div>
+                        <div class="check-btn {% if item.completed %}checked{% endif %}">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-xl-9 col-lg-8">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="dashboard-card">
+                        <div class="card-header-title">
+                            <i class="bi bi-graph-up-arrow text-info"></i> 体重与 BMI 变化曲线
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="weightBmiChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-header-title">
+                            <i class="bi bi-radar text-primary"></i> 综合运动素质雷达
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-header-title">
+                            <i class="bi bi-fire text-danger"></i> 卡路里消耗 (Kcal)
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="calorieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-header-title">
+                            <i class="bi bi-moon-stars text-indigo" style="color: #6366f1;"></i> 睡眠监测 (时长/质量)
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="sleepChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-header-title">
+                            <i class="bi bi-heart-pulse text-danger"></i> 动静心率区间
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="heartRateChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ======== 接收后端传来的海量数据 ========
+    const chartDates = {{ chart_dates | safe }};
+    const chartWeights = {{ chart_weights | safe }};
+    const chartBmis = {{ chart_bmis | safe }};
+    const chartCalories = {{ chart_calories | safe }};
+
+    const chartSleepHours = {{ chart_sleep_hours | safe }};
+    const chartSleepScores = {{ chart_sleep_scores | safe }};
+
+    const chartHrResting = {{ chart_hr_resting | safe }};
+    const chartHrActive = {{ chart_hr_active | safe }};
+
+    const radarLabels = {{ radar_labels | safe }};
+    const radarData = {{ radar_data | safe }};
+
+    // 通用配置，去掉一些默认的冗余网格
+    Chart.defaults.font.family = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+    Chart.defaults.color = '#64748b';
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+    };
+
+    // ================= 图表1：体重与BMI (面积折线) =================
+    const ctxWeight = document.getElementById('weightBmiChart').getContext('2d');
+    const gradientWeight = ctxWeight.createLinearGradient(0, 0, 0, 300);
+    gradientWeight.addColorStop(0, 'rgba(14, 165, 233, 0.4)'); // 亮蓝色
+    gradientWeight.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
+    new Chart(ctxWeight, {
+        type: 'line',
+        data: {
+            labels: chartDates,
+            datasets: [
+                {
+                    label: '体重 (kg)',
+                    data: chartWeights,
+                    borderColor: '#0ea5e9',
+                    backgroundColor: gradientWeight,
+                    borderWidth: 3, tension: 0.4, fill: true,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'BMI 指数',
+                    data: chartBmis,
+                    borderColor: '#8b5cf6',
+                    borderWidth: 2, borderDash: [5, 5], tension: 0.4,
+                    pointBackgroundColor: '#8b5cf6',
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            ...commonOptions,
+            plugins: { legend: { display: true, position: 'top' } },
+            scales: {
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: '体重 (kg)' }, grid: {borderDash:[4,4]} },
+                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'BMI' }, grid: { drawOnChartArea: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // ================= 图表2：运动能力雷达图 =================
+    const ctxRadar = document.getElementById('radarChart').getContext('2d');
+    new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+            labels: radarLabels,
+            datasets: [{
+                label: '当前能力值',
+                data: radarData,
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: '#10b981',
+                pointBackgroundColor: '#10b981',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: 100 } }
+        }
+    });
+
+    // ================= 图表3：卡路里消耗 (圆角柱状) =================
+    const ctxCalorie = document.getElementById('calorieChart').getContext('2d');
+    new Chart(ctxCalorie, {
+        type: 'bar',
+        data: {
+            labels: chartDates,
+            datasets: [{
+                label: '热量 (Kcal)',
+                data: chartCalories,
+                backgroundColor: '#f43f5e',
+                borderRadius: 4, barThickness: 12
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: { y: { grid: { borderDash: [5, 5] } }, x: { grid: { display: false } } }
+        }
+    });
+
+    // ================= 图表4：睡眠监测 (混合双轴) =================
+    const ctxSleep = document.getElementById('sleepChart').getContext('2d');
+    new Chart(ctxSleep, {
+        type: 'bar',
+        data: {
+            labels: chartDates,
+            datasets: [
+                {
+                    type: 'line', label: '睡眠评分', data: chartSleepScores,
+                    borderColor: '#f59e0b', borderWidth: 2, tension: 0.3,
+                    yAxisID: 'y1'
+                },
+                {
+                    type: 'bar', label: '时长 (h)', data: chartSleepHours,
+                    backgroundColor: 'rgba(99, 102, 241, 0.6)', borderRadius: 4, barThickness: 15,
+                    yAxisID: 'y'
+                }
+            ]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                y1: { type: 'linear', position: 'right', suggestedMax: 100, grid: { drawOnChartArea: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // ================= 图表5：心率区间 =================
+    const ctxHr = document.getElementById('heartRateChart').getContext('2d');
+    new Chart(ctxHr, {
+        type: 'line',
+        data: {
+            labels: chartDates,
+            datasets: [
+                {
+                    label: '运动平均心率', data: chartHrActive,
+                    borderColor: '#ef4444', borderWidth: 2, tension: 0.3,
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true
+                },
+                {
+                    label: '静息心率', data: chartHrResting,
+                    borderColor: '#3b82f6', borderWidth: 2, tension: 0.3,
+                }
+            ]
+        },
+        options: {
+            ...commonOptions,
+            scales: { y: { grid: { borderDash: [5, 5] } }, x: { grid: { display: false } } }
+        }
+    });
+
+    // ================= 任务打卡动画交互 =================
+    document.querySelectorAll('.check-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('checked');
+            const iconWrap = this.previousElementSibling.querySelector('.plan-icon');
+            const textWrap = this.previousElementSibling.querySelector('.plan-text');
+
+            if(this.classList.contains('checked')) {
+                iconWrap.classList.remove('icon-pending');
+                iconWrap.classList.add('icon-done');
+                textWrap.classList.add('done');
+            } else {
+                iconWrap.classList.remove('icon-done');
+                iconWrap.classList.add('icon-pending');
+                textWrap.classList.remove('done');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

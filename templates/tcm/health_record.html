@@ -1,0 +1,180 @@
+{% extends "tcm/tcm_base.html" %}
+
+{% block title %}身体状况日记 - 智慧健康系统{% endblock %}
+
+{% block css %}
+<style>
+    .record-card {
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: none;
+    }
+    .section-title {
+        color: #1e5c3a;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+    }
+    /* 漂亮的单选按钮组 */
+    .btn-check:checked + .btn-outline-success {
+        background-color: #2e8b57;
+        color: white;
+    }
+    .slider-custom {
+        width: 100%;
+        height: 6px;
+        background: #e9ecef;
+        outline: none;
+        border-radius: 4px;
+        -webkit-appearance: none;
+    }
+    .slider-custom::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #2e8b57;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .value-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2e8b57;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card record-card p-4 p-md-5">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold" style="color: #1e5c3a;"><i class="bi bi-journal-medical"></i> 每日健康打卡</h2>
+                    <p class="text-muted mt-2">坚持记录多维度数据，AI 助手将为您提供更精准的调理方案</p>
+                </div>
+
+                <form id="recordForm">
+                    <h5 class="section-title"><i class="bi bi-moon-stars"></i> 睡眠状况</h5>
+                    <div class="mb-4">
+                        <label class="form-label text-muted">昨晚睡眠时长</label>
+                        <input type="range" class="slider-custom" id="sleepTime" min="3" max="12" step="0.5" value="7">
+                        <div class="text-center mt-2 value-display"><span id="sleepValue">7</span> <span class="fs-6 text-muted">小时</span></div>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label text-muted d-block">睡眠质量</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="sleepQuality" id="sq1" value="极佳" checked>
+                            <label class="btn btn-outline-success" for="sq1">一觉到天亮</label>
+
+                            <input type="radio" class="btn-check" name="sleepQuality" id="sq2" value="多梦">
+                            <label class="btn btn-outline-success" for="sq2">频繁做梦</label>
+
+                            <input type="radio" class="btn-check" name="sleepQuality" id="sq3" value="易醒">
+                            <label class="btn btn-outline-success" for="sq3">半夜易醒</label>
+
+                            <input type="radio" class="btn-check" name="sleepQuality" id="sq4" value="失眠">
+                            <label class="btn btn-outline-success" for="sq4">入睡困难</label>
+                        </div>
+                    </div>
+
+                    <h5 class="section-title"><i class="bi bi-cup-hot"></i> 饮食与情绪</h5>
+                    <div class="row mb-5">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label text-muted d-block">今日胃口与消化</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="digestion" id="dg1" value="正常" checked>
+                                <label class="btn btn-outline-success" for="dg1">正常</label>
+                                <input type="radio" class="btn-check" name="digestion" id="dg2" value="胀气/反酸">
+                                <label class="btn btn-outline-success" for="dg2">胀气反酸</label>
+                                <input type="radio" class="btn-check" name="digestion" id="dg3" value="食欲不振">
+                                <label class="btn btn-outline-success" for="dg3">食欲不振</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted d-block">今日主导情绪</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="mood" id="md1" value="平静愉悦" checked>
+                                <label class="btn btn-outline-success" for="md1">平静</label>
+                                <input type="radio" class="btn-check" name="mood" id="md2" value="烦躁易怒">
+                                <label class="btn btn-outline-success" for="md2">烦躁</label>
+                                <input type="radio" class="btn-check" name="mood" id="md3" value="低落焦虑">
+                                <label class="btn btn-outline-success" for="md3">焦虑</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="section-title"><i class="bi bi-thermometer-half"></i> 身体不适感评分</h5>
+                    <div class="mb-4">
+                        <p class="small text-muted mb-3">0分代表身体感觉极佳，10分代表极度不适</p>
+                        <input type="range" class="slider-custom" id="symptomScore" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-2 small text-muted">
+                            <span>状态极佳 (0)</span><span>中度不适 (5)</span><span>极度不适 (10)</span>
+                        </div>
+                        <div class="text-center mt-2 value-display text-danger"><span id="scoreValue">0</span> <span class="fs-6 text-muted">分</span></div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label fw-bold"><i class="bi bi-pencil-square"></i> 具体症状描述 (选填)</label>
+                        <textarea class="form-control" id="notes" rows="3" placeholder="例如：今天下午开始有些头痛，大便不成形，或者是吃了生冷食物后胃痛..."></textarea>
+                    </div>
+
+                    <button type="button" class="btn btn-success w-100 py-3 fw-bold fs-5 rounded-pill" onclick="submitRecord()">
+                        <i class="bi bi-cloud-arrow-up"></i> 保存今日健康日记
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    // 联动滑动条数值显示
+    document.getElementById('sleepTime').addEventListener('input', function() {
+        document.getElementById('sleepValue').innerText = this.value;
+    });
+    document.getElementById('symptomScore').addEventListener('input', function() {
+        document.getElementById('scoreValue').innerText = this.value;
+        // 动态改变颜色
+        const val = parseInt(this.value);
+        const color = val < 4 ? '#2e8b57' : (val < 7 ? '#f59e0b' : '#dc3545');
+        document.getElementById('scoreValue').style.color = color;
+    });
+
+    function submitRecord() {
+        const sleepQuality = document.querySelector('input[name="sleepQuality"]:checked').value;
+        const digestion = document.querySelector('input[name="digestion"]:checked').value;
+        const mood = document.querySelector('input[name="mood"]:checked').value;
+        const baseNotes = document.getElementById('notes').value;
+
+        // 巧妙处理：把我们新增的维度数据，打包拼接进 notes 里传给后端，这样后端代码都不用大改！
+        const finalNotes = `[睡眠:${sleepQuality}] [脾胃:${digestion}] [情绪:${mood}] 详细描述: ${baseNotes || '无'}`;
+
+        const data = {
+            sleep: document.getElementById('sleepTime').value,
+            symptom_score: document.getElementById('symptomScore').value,
+            notes: finalNotes
+        };
+
+        fetch('/tcm/record', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.code === 0) {
+                alert('打卡成功！已同步至您的健康档案。');
+                window.location.href = '/tcm';
+            } else {
+                alert(res.msg);
+            }
+        })
+        .catch(err => alert('网络错误，请稍后再试'));
+    }
+</script>
+{% endblock %}
