@@ -1,0 +1,814 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - ZENITH 悦康运动系统{% endblock %}
+
+{% block css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;0,900;1,900&family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+<script type="text/javascript">
+    window._AMapSecurityConfig = {
+        securityJsCode: 'e449b7fc4cac71da813b32eeec886fed',
+    }
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=f7d302475dbfe4d55088ad411394b391&plugin=AMap.Geolocation,AMap.CitySearch"></script>
+
+<style>
+/* ================= 全局重置与导航栏 ================= */
+html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden !important; background: #ffffff !important;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+footer.footer { display: none !important; }
+
+header.header, .header {
+    background: rgba(255, 255, 255, 0) !important;
+    backdrop-filter: blur(0px) !important; -webkit-backdrop-filter: blur(0px) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0) !important; box-shadow: none !important;
+    position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 9999 !important;
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); height: 90px;
+}
+header.header.scrolled, .header.scrolled {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.03) !important;
+    height: 75px;
+}
+header.header .navbar-brand, header.header .nav-link, header.header .user-name, header.header a.text-dark {
+    color: #0f172a !important; font-weight: 700 !important; text-shadow: none !important; letter-spacing: 0.5px;
+}
+header.header .navbar-brand span { color: #94a3b8 !important; }
+header.header .nav-link:hover, header.header a.text-dark:hover { color: #0ea5e9 !important; }
+
+/* ================= 页面滚动框架 ================= */
+.ppt-container {
+    width: 100%; height: 100vh;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    position: absolute !important; top: 0 !important; left: 0 !important; z-index: 1 !important;
+}
+.ppt-container::-webkit-scrollbar { display: none; }
+.ppt-section {
+    width: 100%; height: 100vh;
+    position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    box-sizing: border-box; overflow: hidden !important; padding: 70px 0 0 0 !important;
+}
+
+main.main, .container-fluid.px-0 { padding: 0 !important; margin: 0 !important; }
+
+/* ================= 第一屏：高定动态轮播视觉 ================= */
+.zenith-hero {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;
+    background-color: #ffffff; font-family: 'Inter', 'PingFang SC', sans-serif;
+    display: flex; align-items: center; justify-content: center; z-index: 1;
+}
+.zenith-hero::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 140px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%);
+    z-index: 5; pointer-events: none;
+}
+.hero-bg-placeholder { position: absolute; inset: 0; background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); z-index: 0; }
+.hero-carousel { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+.zenith-slide { position: absolute; inset: -5%; width: 110%; height: 110%; background-size: cover; background-position: center; opacity: 0; z-index: 1; transition: opacity 1.2s ease-in-out; }
+.hero-content { position: relative; z-index: 10; text-align: center; max-width: 900px; padding: 0 20px; }
+.hero-title { font-family: 'Montserrat', sans-serif; font-size: clamp(3.5rem, 6vw, 6.5rem); font-weight: 900; color: #ffffff; margin: 0 0 15px 0; line-height: 1.1; letter-spacing: -2px; text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3); animation: fadeUp 1s ease-out forwards; text-transform: uppercase; }
+.text-accent { color: #0ea5e9; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+.hero-subtitle-cn { font-size: clamp(1.2rem, 2vw, 1.8rem); font-weight: 800; color: #f1f5f9; margin: 0 0 10px 0; letter-spacing: 2px; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25); opacity: 0; animation: fadeUp 1s ease-out 0.2s forwards; }
+.hero-subtitle-en { font-size: clamp(0.9rem, 1.2vw, 1.1rem); font-weight: 600; color: #e2e8f0; margin: 0 0 35px 0; letter-spacing: 0.5px; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.2); opacity: 0; animation: fadeUp 1s ease-out 0.4s forwards; }
+.hero-typewriter { display: inline-block; padding: 12px 30px; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px); border-radius: 50px; font-size: 1.15rem; font-weight: 800; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); opacity: 0; animation: fadeUp 1s ease-out 0.6s forwards; }
+.cursor { animation: blink 1s step-end infinite; color: #ffffff;}
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes fadeUp { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
+
+.hero-dots-container { position: absolute; bottom: 12vh; left: 0; width: 100%; display: flex; justify-content: center; gap: 15px; z-index: 10; }
+.hero-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: all 0.4s ease; }
+.hero-dot.active { background: #0ea5e9; width: 32px; border-radius: 10px; border-color: transparent; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); }
+
+.scroll-down-arrow-container { position: absolute; bottom: 3vh; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; z-index: 20; cursor: pointer; }
+.scroll-down-arrow { color: #64748b; font-size: 2.2rem; animation: pulse 1.5s infinite; transition: color 0.3s; }
+.scroll-down-arrow-container:hover .scroll-down-arrow { color: #0ea5e9; }
+@keyframes pulse { 0% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(8px); opacity: 0.5; } 100% { transform: translateY(0); opacity: 1; } }
+
+/* ================= 页面背景与通用组件 ================= */
+.bg-slide-2 { background: linear-gradient(rgba(248,250,252,0.95), rgba(248,250,252,0.95)), url('https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1920') fixed center/cover; }
+.bg-slide-3 { background: linear-gradient(to right, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 100%), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920') fixed center/cover; }
+.bg-slide-4 { background: linear-gradient(rgba(241,245,249,0.92), rgba(241,245,249,0.95)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1920') fixed center/cover; }
+.bg-slide-5 { background: linear-gradient(to left, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.65) 100%), url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=1920') fixed center/cover; }
+.bg-slide-6 { background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.95)), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1920') fixed center/cover; }
+.bg-slide-7 { background: linear-gradient(rgba(248,250,252,0.92), rgba(248,250,252,0.97)), url('https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1920') fixed center/cover; }
+
+.gs-reveal { opacity: 1; transform: translateY(0); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+.needs-reveal { opacity: 0; transform: translateY(30px); }
+
+.embedded-module-container, .showcase-container, .container, .feedback-container { max-width: 1500px; width: 100%; padding: 0 50px; margin: 0 auto; }
+.embedded-module-title { color: #0f172a; font-weight: 800; font-size: 2.2rem; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+.embedded-module-title i { color: #0ea5e9; }
+.glass-panel { background: rgba(255, 255, 255, 0.8) !important; backdrop-filter: blur(20px) !important; border-radius: 16px !important; padding: 40px !important; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05) !important; border: 1px solid rgba(255, 255, 255, 1) !important; }
+
+/* ================= 新增/优化模块样式 ================= */
+
+/* 1. 健身房模块优化样式 */
+.glass-panel-gym {
+    border: 1px solid rgba(14, 165, 233, 0.3) !important;
+    box-shadow: 0 15px 50px rgba(14, 165, 233, 0.08), inset 0 0 20px rgba(255,255,255,0.5) !important;
+    position: relative; overflow: hidden;
+}
+.glass-panel-gym::before {
+    content: ''; position: absolute; top: -150px; right: -100px; width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none;
+}
+.feature-badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: transform 0.3s;
+}
+.feature-badge:hover { transform: translateY(-2px); }
+.badge-blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(14, 165, 233, 0.05)); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); }
+.badge-green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-purple { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05)); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+
+#gymMapPreview {
+    height: 55vh; min-height: 450px; border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(14, 165, 233, 0.15);
+    border: 2px solid rgba(14, 165, 233, 0.2); overflow: hidden; position: relative; z-index: 2;
+}
+
+/* 2. 悦康管家模块优化样式 */
+.glass-panel-ai {
+    border: 1px solid rgba(212, 181, 142, 0.5) !important;
+    background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(252,248,242,0.95) 100%) !important;
+    box-shadow: 0 15px 50px rgba(212, 181, 142, 0.15) !important;
+    position: relative; overflow: hidden;
+}
+.glass-panel-ai::before {
+    content: ''; position: absolute; bottom: -100px; left: -50px; width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(212, 181, 142, 0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none;
+}
+.ai-pulse { animation: aiPulse 2s infinite; }
+@keyframes aiPulse {
+    0% { box-shadow: 0 0 0 0 rgba(212, 181, 142, 0.4); }
+    70% { box-shadow: 0 0 0 12px rgba(212, 181, 142, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 181, 142, 0); }
+}
+
+.assistant-body-embedded {
+    height: 45vh; min-height: 350px; overflow-y: auto; padding: 25px 30px;
+    background: rgba(255,255,255,0.7); border-radius: 20px; margin-bottom: 20px;
+    border: 1px solid rgba(212, 181, 142, 0.3); box-shadow: inset 0 2px 15px rgba(0,0,0,0.02); scrollbar-width: thin;
+}
+.quick-question-btn {
+    border: 1px solid rgba(0,0,0,0.06) !important; font-size: 1.05rem; padding: 14px 20px !important;
+    background: white !important; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important; position: relative; overflow: hidden;
+}
+.quick-question-btn:hover { background: #fafafa !important; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important; }
+.btn-primary-solid { background: #0ea5e9; color: white; border: none; padding: 14px 30px; border-radius: 30px; font-weight: 600; font-size: 1.1rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; }
+.btn-primary-solid:hover { background: #0284c7; color: white; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2); transform: translateY(-2px); }
+
+/* ================= 其它原有组件 ================= */
+.showcase-feature-item { background: rgba(255, 255, 255, 0.9) !important; border-radius: 12px !important; padding: 20px 25px !important; border-left: 4px solid #0ea5e9 !important; margin-bottom: 15px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+.showcase-image-wrapper { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.showcase-image-wrapper img { max-width: 100%; max-height: 60vh; object-fit: cover; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+.premium-card { height: 45vh; min-height: 320px; position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+.premium-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+.card-img-container { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+.premium-card:hover .card-img-container { transform: scale(1.08); }
+.card-overlay-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px; background: linear-gradient(to top, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0) 100%); text-align: center; z-index: 2; }
+.card-overlay-content h3 { color: #fff; font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+.card-overlay-content p { color: rgba(255,255,255,0.8); font-size: 1rem; letter-spacing: 2px; }
+
+.carousel-wrapper { width: 100%; position: relative; overflow: hidden; padding: 10px 0; }
+.carousel-container { display: flex; gap: 25px; width: 100%; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 20px; scrollbar-width: none; }
+.carousel-container::-webkit-scrollbar { display: none; }
+.equipment-item-embedded { flex: 0 0 280px; min-height: 360px; background: #fff; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 25px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02); position: relative; }
+.equipment-img-embedded { height: 200px; background: #f8fafc; }
+.equipment-img-embedded img { width: 100%; height: 100%; object-fit: cover; }
+.equipment-info-embedded { padding: 20px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.equipment-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; color: #0f172a; font-size: 1.2rem; cursor: pointer; z-index: 10; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.equipment-nav-btn:hover { color: #fff; background: #0ea5e9; }
+.equipment-nav-btn.prev { left: -15px; }
+.equipment-nav-btn.next { right: -15px; }
+.add-to-cart-quick { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.95); color: #0ea5e9; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; opacity: 0; transform: translateY(-10px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 10; }
+.equipment-item-embedded:hover .add-to-cart-quick { opacity: 1; transform: translateY(0); }
+.add-to-cart-quick:hover { background: #0ea5e9; color: white; transform: translateY(0) scale(1.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ppt-container">
+
+    <section class="ppt-section bg-light-mode" style="padding: 0 !important; margin: 0; border: none;">
+        <div class="zenith-hero" id="zenithHero">
+            <div class="hero-bg-placeholder"></div>
+            <div class="hero-carousel" id="heroCarousel">
+                <div class="zenith-slide active" style="background-image: url('/static/images/slide_01.jpg'); opacity: 1; z-index: 2;"></div>
+                <div class="zenith-slide" style="background-image: url('/static/images/slide_02.jpg');"></div>
+                <div class="zenith-slide" style="background-image: url('/static/images/slide_03.jpg');"></div>
+                <div class="zenith-slide" style="background-image: url('/static/images/slide_04.jpg');"></div>
+                <div class="zenith-slide" style="background-image: url('/static/images/slide_05.jpg');"></div>
+            </div>
+            <div class="hero-content" id="heroContent">
+                <h1 class="hero-title">BREAK YOUR LIMITS<span class="text-accent">.</span></h1>
+                <h2 class="hero-subtitle-cn">打破运动边界，构建专属个人健康数字孪生。</h2>
+                <p class="hero-subtitle-en">Break sports boundaries, build your exclusive personal health digital twin.</p>
+                <div class="hero-typewriter"><span id="typewriterText"></span><span class="cursor">|</span></div>
+            </div>
+            <div class="hero-dots-container" id="heroDots"></div>
+        </div>
+        <div class="scroll-down-arrow-container bg-light-mode" onclick="scrollToNext(this)">
+            <i class="bi bi-chevron-down scroll-down-arrow"></i>
+        </div>
+    </section>
+
+    <section id="core-services" class="ppt-section bg-slide-2 bg-light-mode">
+        <div class="container gs-reveal needs-reveal">
+            <h2 class="embedded-module-title justify-content-center" style="font-size: 2.6rem;">核心服务 / CORE SERVICES</h2>
+            <div class="row g-4 mt-2">
+                <div class="col-md-4">
+                    <div class="premium-card" onclick="location.href='/profile'">
+                        <div class="card-img-container" style="background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800');"></div>
+                        <div class="card-overlay-content"><h3>了解你的健康</h3><p>HEALTH ASSESSMENT</p></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="premium-card" onclick="location.href='/tcm/recommend'">
+                        <div class="card-img-container" style="background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800');"></div>
+                        <div class="card-overlay-content"><h3>定制你的饮食</h3><p>NUTRITION PLAN</p></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="premium-card" onclick="location.href='/plan-create'">
+                        <div class="card-img-container" style="background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800');"></div>
+                        <div class="card-overlay-content"><h3>制定你的计划</h3><p>WORKOUT SCHEDULE</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-down-arrow-container bg-light-mode" onclick="scrollToNext(this)">
+            <i class="bi bi-chevron-down scroll-down-arrow"></i>
+        </div>
+    </section>
+
+    <section id="travel-section" class="ppt-section bg-slide-3 bg-light-mode">
+        <div class="showcase-container gs-reveal needs-reveal">
+            <div class="row align-items-center" style="height: 100%;">
+                <div class="col-lg-6">
+                    <div class="showcase-content glass-panel" style="border:none; padding:50px;">
+                        <div class="showcase-tag"><i class="bi bi-airplane-engines"></i> 探索世界 · 运动旅游</div>
+                        <h2 class="showcase-title">用身体去旅行<br><span>不只是风景，更是流汗</span></h2>
+                        <p class="showcase-desc">发现一个不一样的世界，抛弃走马观花的打卡，用双脚丈量地球的每一寸土地。我们为您精选全球顶级运动旅行路线，让心跳与大自然的脉搏同频共振。</p>
+                        <div class="showcase-feature-list">
+                            <div class="showcase-feature-item">
+                                <h5><span>🇳🇴 挪威 · 罗弗敦群岛</span> <span class="badge bg-warning text-dark">难度 ⭐⭐⭐</span></h5>
+                                <p>极光下越野滑雪 + 皮划艇：在北极圈内的壮丽峡湾中，体验极致的冷酷与热情。</p>
+                            </div>
+                            <div class="showcase-feature-item">
+                                <h5><span>🇯🇵 日本 · 熊野古道</span> <span class="badge bg-danger">≈2000大卡/天</span></h5>
+                                <p>千年徒步路线：穿梭于古老参天大树间的神圣朝圣之路。深度有氧净化身心。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" style="height: 100%;">
+                    <div class="showcase-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1533692328991-08159ff19fca?q=80&w=800" referrerpolicy="no-referrer" alt="峡湾皮划艇">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-down-arrow-container bg-light-mode" onclick="scrollToNext(this)">
+            <i class="bi bi-chevron-down scroll-down-arrow"></i>
+        </div>
+    </section>
+
+    <section id="gym-section" class="ppt-section bg-slide-4 bg-light-mode">
+        <div class="embedded-module-container gs-reveal needs-reveal">
+            <h2 class="embedded-module-title"><i class="bi bi-geo-alt"></i> 健身房查找</h2>
+            <div class="glass-panel glass-panel-gym">
+                <div class="row g-5 align-items-center">
+                    <div class="col-lg-4">
+                        <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10;">
+                            <h3 style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 15px;">周边健身场馆探索</h3>
+
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <span class="feature-badge badge-blue"><i class="bi bi-clock-history"></i> 24h 营业</span>
+                                <span class="feature-badge badge-green"><i class="bi bi-wind"></i> 新风净化</span>
+                                <span class="feature-badge badge-purple"><i class="bi bi-stars"></i> 顶级器械</span>
+                            </div>
+
+                            <p style="color: #475569; margin-bottom: 40px; font-size: 1.1rem; line-height: 1.8;">
+                                智能定位您的当前坐标，一键筛选附近评分最高、设施最全的顶级健身空间。立刻开启您的热汗之旅。
+                            </p>
+
+                            <a href="/gym" class="btn-primary-solid" style="box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);">
+                                <i class="bi bi-compass-fill"></i> 一键规划最佳路线
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div id="gymMapPreview"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-down-arrow-container bg-light-mode" onclick="scrollToNext(this)">
+            <i class="bi bi-chevron-down scroll-down-arrow"></i>
+        </div>
+    </section>
+
+    <section id="psychology-section" class="ppt-section bg-slide-5 bg-light-mode">
+        <div class="showcase-container gs-reveal needs-reveal">
+            <div class="row align-items-center flex-lg-row-reverse" style="height: 100%;">
+                <div class="col-lg-6">
+                    <div class="showcase-content glass-panel" style="border:none; padding:50px;">
+                        <div class="showcase-tag" style="color: #0ea5e9;"><i class="bi bi-brain"></i> 认知重塑 · 科学自律</div>
+                        <h2 class="showcase-title">🧠 运动心理学<br><span style="color: #0ea5e9;">你的大脑才是最强的肌肉</span></h2>
+                        <p class="showcase-desc">为什么开始比坚持更难？答案不在身体里，而在你的潜意识中。了解大脑的奖励机制，打破拖延。</p>
+                        <div class="showcase-feature-list">
+                            <div class="showcase-feature-item">
+                                <h5>1. “5分钟法则”</h5>
+                                <p>不想锻炼时，告诉自己“只练5分钟”。80%的人会在5分钟后继续下去。</p>
+                            </div>
+                            <div class="showcase-feature-item">
+                                <h5>2. 建立自我效能感</h5>
+                                <p>每天完成一个小运动目标（如10个深蹲），大脑会不断积累“我能行”的证据。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" style="height: 100%;">
+                    <div class="showcase-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800" referrerpolicy="no-referrer" alt="冥想">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-down-arrow-container bg-light-mode" onclick="scrollToNext(this)">
+            <i class="bi bi-chevron-down scroll-down-arrow"></i>
+        </div>
+    </section>
+
+    <section id="assistant-section" class="ppt-section bg-slide-6 bg-light-mode">
+        <div class="embedded-module-container gs-reveal needs-reveal">
+            <h2 class="embedded-module-title"><i class="bi bi-stars" style="color: #d4b58e;"></i> ZENITH 悦康生态</h2>
+            <div class="glass-panel glass-panel-ai" style="padding: 40px;">
+                <div class="row g-5">
+                    <div class="col-lg-4" style="position: relative; z-index: 10;">
+                        <h3 style="font-size: 1.6rem; font-weight: 800; color: #2c3e50; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                            <i class="bi bi-robot" style="color: #d4b58e;"></i> ZENITH 悦康管家
+                        </h3>
+                        <p style="color: #5c6c7d; font-size: 1.05rem; line-height: 1.6; margin-bottom: 30px;">
+                            您的专属 AI 健康顾问，基于前沿运动医学大模型，提供<span style="color:#d4b58e; font-weight:bold;">科学减脂</span>、<span style="color:#d4b58e; font-weight:bold;">增肌方案</span>与营养指导。
+                        </p>
+
+                        <h4 style="font-size: 0.9rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">探索热门话题</h4>
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            <button class="btn btn-light text-start quick-question-btn" style="border-left: 4px solid #ef4444 !important;">
+                                <i class="bi bi-fire me-2" style="color: #ef4444;"></i>如何科学且健康地减重？
+                            </button>
+                            <button class="btn btn-light text-start quick-question-btn" style="border-left: 4px solid #10b981 !important;">
+                                <i class="bi bi-egg-fried me-2" style="color: #10b981;"></i>推荐健身后高蛋白饮食
+                            </button>
+                            <button class="btn btn-light text-start quick-question-btn" style="border-left: 4px solid #8b5cf6 !important;">
+                                <i class="bi bi-house-door me-2" style="color: #8b5cf6;"></i>初学者居家微运动计划
+                            </button>
+                        </div>
+                        <a href="/assistant" class="btn-primary-solid w-100" style="border-radius: 12px; background: linear-gradient(135deg, #344054 0%, #1e293b 100%); border: 1px solid #475569;">
+                            <i class="bi bi-fullscreen"></i> 开启沉浸式全屏对话
+                        </a>
+                    </div>
+                    <div class="col-lg-8" style="position: relative; z-index: 10;">
+                        <div class="assistant-body-embedded" id="embeddedChatHistory">
+                            <div class="d-flex align-items-start mb-4">
+                                <div class="ai-pulse" style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #fff, #fdfbfb); display: flex; align-items: center; justify-content: center; margin-right: 14px; box-shadow: 0 4px 12px rgba(212, 181, 142, 0.2); border: 1px solid rgba(212, 181, 142, 0.5); color: #d4b58e; flex-shrink: 0;">
+                                    <i class="bi bi-stars" style="font-size: 20px;"></i>
+                                </div>
+                                <div style="background: #ffffff; padding: 20px 24px; border-radius: 4px 20px 20px 20px; color: #2c3e50; font-size: 1.05rem; max-width: 80%; box-shadow: 0 8px 25px rgba(0,0,0,0.04); border: 1px solid rgba(212, 181, 142, 0.2);">
+                                    <h4 style="color: #d4b58e; margin: 0 0 10px 0; font-size: 1.15rem; font-weight: 700;">👋 欢迎体验 ZENITH 智能悦康</h4>
+                                    您好！我是您的专属健康顾问。无论是制定训练计划、分析营养摄入，还是解答运动困惑，我都随时为您效劳。请问今天有什么健康问题想要探索？
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <input type="text" id="embeddedChatInput" style="flex:1; padding: 18px 24px; border: 1px solid rgba(212, 181, 142, 0.3); border-radius: 12px; font-size: 1.05rem; outline:none; box-shadow: inset 0 2px 10px rgba(0,0,0,0.01); transition: all 0.3s; background: rgba(255,255,255,0.9);" placeholder="输入您关注的健康问题...">
+                            <button id="embeddedSendBtn" class="btn-primary-solid" style="border-radius: 12px; width: 64px; height: 64px; padding: 0; background: linear-gradient(135deg, #d4b58e 0%, #c4a176 100%); box-shadow: 0 6px 20px rgba(212, 181, 142, 0.4);">
+                                <i class="bi bi-send-fill" style="margin:0; font-size: 1.4rem;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-down-arrow-container bg-light-mode" onclick="scrollToNext(this)">
+            <i class="bi bi-chevron-down scroll-down-arrow"></i>
+        </div>
+    </section>
+
+    <section id="shop-section" class="ppt-section bg-slide-7 bg-light-mode">
+        <div class="embedded-module-container gs-reveal needs-reveal">
+            <h2 class="embedded-module-title"><i class="bi bi-dumbbell"></i> 健身器材商城</h2>
+            <div class="glass-panel" style="padding: 40px;">
+                <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+                    <div class="d-flex gap-3 flex-grow-1">
+                        <input type="text" class="form-control equipment-search-input" style="padding: 14px 20px; font-size: 1.1rem; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1);" placeholder="搜索器材（如：哑铃、跑步机）">
+                        <button class="btn btn-primary-solid equipment-search-btn" style="border-radius: 12px; padding: 14px 30px;"><i class="bi bi-search"></i> 搜索</button>
+                    </div>
+                    <a href="/shop" class="btn-primary-solid" style="background: #0ea5e9; border-radius: 12px; text-decoration: none; padding: 14px 25px; box-shadow: 0 8px 20px rgba(14, 165, 233, 0.25);">
+                        <i class="bi bi-shop"></i> 进入严选商城大厅
+                    </a>
+                </div>
+                <div class="carousel-wrapper">
+                    <button class="btn equipment-nav-btn prev" onclick="moveEquipmentCarousel(-1)"><i class="bi bi-chevron-left"></i></button>
+                    <div class="carousel-container" id="equipmentCarousel">
+                        {% for item in equipment_list %}
+                        <div class="equipment-item-embedded">
+                            <button class="add-to-cart-quick" onclick="addToCartQuick('{{ item.id }}', '{{ item.name }}', '{{ item.price }}', '{{ item.image_url }}')" title="加入购物车">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                            <div class="equipment-img-embedded">
+                                <img src="{{ item.image_url }}" alt="{{ item.name }}" referrerpolicy="no-referrer">
+                            </div>
+                            <div class="equipment-info-embedded">
+                                <h4 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #0f172a;">{{ item.name }}</h4>
+                                <p style="color: #0ea5e9; font-size: 1.3rem; font-weight: bold; margin: 10px 0;">{{ item.price }}</p>
+                                <button class="btn btn-primary-solid w-100" style="padding: 10px;" onclick="location.href='/equipment?keyword={{ item.name }}'">查看详情</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button class="btn equipment-nav-btn next" onclick="moveEquipmentCarousel(1)"><i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-down-arrow-container bg-light-mode" onclick="scrollToNext(this)">
+            <i class="bi bi-chevron-down scroll-down-arrow"></i>
+        </div>
+    </section>
+
+    <section class="ppt-section bg-footer gs-reveal needs-reveal" style="background: linear-gradient(135deg, #fdfbfb 0%, #f4f2ea 100%); border-top: 1px solid rgba(212,181,142,0.2); padding: 80px 0 30px 0 !important; height: auto !important; min-height: 50vh !important;">
+        <div class="footer-container" style="max-width: 1400px; margin: 0 auto; padding: 0 40px; width: 100%;">
+            <div class="row g-5 mb-5">
+                <div class="col-lg-4 pe-lg-5">
+                    <h2 style="color: #2c3e50; font-weight: 800; font-size: 2.2rem; letter-spacing: 1px; margin-bottom: 15px;">
+                        <i class="bi bi-stars" style="color: #d4b58e;"></i> ZENITH 悦康
+                    </h2>
+                    <p style="color: #5c6c7d; font-size: 1.05rem; line-height: 1.8; margin-bottom: 25px;">
+                        我们致力于构建智慧医疗与科学健身的一体化生态平台。以数据为驱动，以专业为基石，为您的高定健康生活保驾护航。
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" style="width: 40px; height: 40px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; color: #344054; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.3s;" onmouseover="this.style.background='#d4b58e'; this.style.color='#fff';" onmouseout="this.style.background='#ffffff'; this.style.color='#344054';"><i class="bi bi-wechat"></i></a>
+                        <a href="#" style="width: 40px; height: 40px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; color: #344054; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.3s;" onmouseover="this.style.background='#d4b58e'; this.style.color='#fff';" onmouseout="this.style.background='#ffffff'; this.style.color='#344054';"><i class="bi bi-sina-weibo"></i></a>
+                        <a href="#" style="width: 40px; height: 40px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; color: #344054; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.3s;" onmouseover="this.style.background='#d4b58e'; this.style.color='#fff';" onmouseout="this.style.background='#ffffff'; this.style.color='#344054';"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <h4 style="font-size: 1.15rem; font-weight: 700; color: #2c3e50; margin-bottom: 20px;">探索发现</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; line-height: 2.2;">
+                        <li><a href="/profile" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">高定健康评估</a></li>
+                        <li><a href="/plan-create" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">AI 运动管家</a></li>
+                        <li><a href="/community" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">高阶运动社区</a></li>
+                        <li><a href="/shop" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">严选装备商城</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <h4 style="font-size: 1.15rem; font-weight: 700; color: #2c3e50; margin-bottom: 20px;">关于与支持</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; line-height: 2.2;">
+                        <li><a href="/about" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">品牌故事</a></li>
+                        <li><a href="/contact" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">联系我们</a></li>
+                        <li><a href="/privacy" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">隐私权政策</a></li>
+                        <li><a href="/terms" style="color: #5c6c7d; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d4b58e'" onmouseout="this.style.color='#5c6c7d'">用户服务协议</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-4">
+                    <h4 style="font-size: 1.15rem; font-weight: 700; color: #2c3e50; margin-bottom: 20px;">订阅专属健康简报</h4>
+                    <p style="color: #5c6c7d; font-size: 0.95rem; margin-bottom: 15px;">获取前沿医学减脂与营养学知识更新。</p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+                        <input type="email" placeholder="输入您的邮箱地址" style="flex: 1; padding: 12px 20px; border-radius: 30px; border: 1px solid rgba(0,0,0,0.08); outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                        <button style="background: #344054; color: white; border: none; padding: 0 25px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#d4b58e';" onmouseout="this.style.background='#344054';">订阅</button>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="display: flex; align-items: center; gap: 10px; color: #5c6c7d; margin-bottom: 10px;">
+                            <i class="bi bi-telephone-fill" style="color: #d4b58e; font-size: 1.2rem;"></i> <span style="font-weight: 600; color: #2c3e50;">400-888-9999</span>
+                        </li>
+                        <li style="display: flex; align-items: center; gap: 10px; color: #5c6c7d;">
+                            <i class="bi bi-envelope-fill" style="color: #d4b58e; font-size: 1.2rem;"></i> service@zenith.com
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom" style="border-top: 1px solid rgba(0,0,0,0.06); padding-top: 25px; text-align: center; color: #94a3b8; font-size: 0.9rem;">
+                <p style="margin:0;">ZENITH FITNESS 高级健康管理科技 版权所有 &copy; 2024-2026</p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // ================= 1. 丝滑滚动控制 (GSAP 接管) =================
+        const pptContainer = document.querySelector('.ppt-container');
+        const sections = document.querySelectorAll('.ppt-section');
+        const header = document.querySelector('header.header');
+        let currentSectionIndex = 0;
+        let isScrolling = false;
+
+        // 【核心修复】：新增一个实时计算当前真实楼层位置的方法
+        // 防止因为浏览器返回上一页恢复了滚动条，导致 currentSectionIndex 脱节
+        function getRealCurrentIndex() {
+            let scrollTop = pptContainer.scrollTop;
+            let closestIndex = 0;
+            let minDiff = Infinity;
+
+            sections.forEach((sec, idx) => {
+                let diff = Math.abs(scrollTop - sec.offsetTop);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestIndex = idx;
+                }
+            });
+            return closestIndex;
+        }
+
+        // 页面刚加载（含从历史记录返回）时，尝试强制对齐一次导航栏样式
+        window.addEventListener('pageshow', function(e) {
+            setTimeout(() => {
+                currentSectionIndex = getRealCurrentIndex();
+                if (currentSectionIndex > 0) {
+                    header?.classList.add('scrolled');
+                } else {
+                    header?.classList.remove('scrolled');
+                }
+            }, 100); // 延迟执行，等待浏览器原生的滚动恢复完成
+        });
+
+        function smoothScrollTo(index) {
+            if (index < 0 || index >= sections.length) return;
+            isScrolling = true;
+            currentSectionIndex = index;
+
+            // 处理导航栏透明度与阴影
+            if (currentSectionIndex > 0) {
+                header?.classList.add('scrolled');
+            } else {
+                header?.classList.remove('scrolled');
+            }
+
+            // 使用 GSAP 平滑地改变 scrollTop 属性
+            gsap.to(pptContainer, {
+                duration: 1.2, // 持续时间，数字越大越慢越丝滑
+                scrollTop: sections[index].offsetTop,
+                ease: "power3.inOut", // 使用慢起慢落的顺滑曲线
+                onComplete: () => {
+                    setTimeout(() => { isScrolling = false; }, 300); // 加一点缓冲，防止快速连滚
+                }
+            });
+        }
+
+        // 监听鼠标滚轮事件
+        pptContainer.addEventListener('wheel', (e) => {
+            // 如果鼠标正在滑动聊天框或者商品横向轮播区域，则让其原生滚动，不拦截
+            if (e.target.closest('.assistant-body-embedded') || e.target.closest('.carousel-container')) {
+                return;
+            }
+
+            e.preventDefault(); // 阻断默认生硬的滚动
+            if (isScrolling) return;
+
+            // 【核心修复】：每次响应滚轮前，动态拿一次真实的 index
+            currentSectionIndex = getRealCurrentIndex();
+
+            if (e.deltaY > 30) {
+                smoothScrollTo(currentSectionIndex + 1); // 向下
+            } else if (e.deltaY < -30) {
+                smoothScrollTo(currentSectionIndex - 1); // 向上
+            }
+        }, { passive: false });
+
+        // 兼容移动端/触控板的手指滑动
+        let touchStartY = 0;
+        pptContainer.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        pptContainer.addEventListener('touchmove', (e) => {
+             // 允许内部特定元素自行滑动
+             if (e.target.closest('.assistant-body-embedded') || e.target.closest('.carousel-container')) return;
+             e.preventDefault();
+        }, { passive: false });
+
+        pptContainer.addEventListener('touchend', (e) => {
+             if (e.target.closest('.assistant-body-embedded') || e.target.closest('.carousel-container')) return;
+             let touchEndY = e.changedTouches[0].clientY;
+             let deltaY = touchStartY - touchEndY;
+
+             if (isScrolling) return;
+
+             // 【核心修复】：每次响应手指滑动前，动态拿一次真实的 index
+             currentSectionIndex = getRealCurrentIndex();
+
+             if (deltaY > 50) smoothScrollTo(currentSectionIndex + 1);
+             else if (deltaY < -50) smoothScrollTo(currentSectionIndex - 1);
+        });
+
+        // 窗口大小变化时重新校准位置
+        window.addEventListener('resize', () => {
+             gsap.set(pptContainer, { scrollTop: sections[currentSectionIndex].offsetTop });
+        });
+
+        // 覆写原先绑定在箭头上的点击事件
+        window.scrollToNext = function(arrowElement) {
+            currentSectionIndex = getRealCurrentIndex();
+            smoothScrollTo(currentSectionIndex + 1);
+        };
+
+
+        // ================= 2. Hero 首屏图片轮播 =================
+        const slides = document.querySelectorAll('.zenith-slide');
+        const dotsContainer = document.getElementById('heroDots');
+        let currentSlide = 0;
+        const slideDuration = 5000;
+        let slideInterval;
+        let isTransitioning = false;
+
+        slides.forEach(slide => {
+            const bgImage = slide.style.backgroundImage;
+            if(bgImage) { const url = bgImage.slice(5, -2).replace(/"/g, ""); const img = new Image(); img.src = url; }
+        });
+
+        if (slides.length > 0 && dotsContainer) {
+            slides.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.classList.add('hero-dot');
+                if(idx === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => { if(!isTransitioning && idx !== currentSlide) goToSlide(idx); });
+                dotsContainer.appendChild(dot);
+            });
+
+            const dots = document.querySelectorAll('.hero-dot');
+            function goToSlide(index) {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                const oldSlide = currentSlide; currentSlide = index;
+                dots[oldSlide].classList.remove('active'); dots[currentSlide].classList.add('active');
+                slides[currentSlide].style.zIndex = "2"; slides[currentSlide].style.opacity = "1"; slides[currentSlide].classList.add('active');
+                slides[oldSlide].style.zIndex = "1";
+                setTimeout(() => { slides[oldSlide].style.opacity = "0"; slides[oldSlide].classList.remove('active'); isTransitioning = false; }, 1200);
+                resetInterval();
+            }
+            function nextSlide() { if(!isTransitioning) goToSlide((currentSlide + 1) % slides.length); }
+            function startInterval() { slideInterval = setInterval(nextSlide, slideDuration); }
+            function resetInterval() { clearInterval(slideInterval); startInterval(); }
+            startInterval();
+        }
+
+        // ================= 3. 动态打字机特效 =================
+        const quotes = ["Every step counts. (每一步都算数)", "Consistency is the key. (坚持才是关键)", "Mind over matter. (意念超越物质)", "Your only limit is you. (唯一的限制是你自己)"];
+        const typeTarget = document.getElementById('typewriterText');
+        let quoteIdx = 0;
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        async function typeWriter() {
+            if(!typeTarget) return;
+            while(true) {
+                let currentWord = quotes[quoteIdx];
+                for (let i = 0; i <= currentWord.length; i++) { typeTarget.innerText = currentWord.substring(0, i); await sleep(70); }
+                await sleep(3000);
+                for (let i = currentWord.length; i >= 0; i--) { typeTarget.innerText = currentWord.substring(0, i); await sleep(30); }
+                await sleep(600);
+                quoteIdx = (quoteIdx + 1) % quotes.length;
+            }
+        }
+        setTimeout(typeWriter, 1200);
+
+        // ================= 4. 其余业务逻辑 (地图、购物车、聊天) =================
+        const observerOptions = { root: document.querySelector('.ppt-container'), rootMargin: '0px 0px -5% 0px', threshold: 0.05 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.remove('needs-reveal'); entry.target.classList.add('is-visible'); } });
+        }, observerOptions);
+        document.querySelectorAll('.gs-reveal').forEach(el => observer.observe(el));
+        setTimeout(() => { document.querySelectorAll('.needs-reveal').forEach(el => { el.classList.remove('needs-reveal'); el.classList.add('is-visible'); }); }, 1500);
+
+        function initGymMap() {
+            const mapDiv = document.getElementById('gymMapPreview');
+            if(!mapDiv) return;
+            if (typeof AMap !== 'undefined') {
+                try {
+                    var map = new AMap.Map('gymMapPreview', { zoom: 14, resizeEnable: true, mapStyle: 'amap://styles/normal' });
+                    AMap.plugin('AMap.Geolocation', function() {
+                        var geolocation = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 10000, zoomToAccuracy: true });
+                        map.addControl(geolocation);
+                        geolocation.getCurrentPosition(function(status, result) {
+                            if(status === 'complete'){
+                                new AMap.Marker({ position: result.position, content: '<div style="background:#0ea5e9; width:16px; height:16px; border-radius:50%; border:3px solid white; box-shadow:0 0 10px rgba(14,165,233,0.5);"></div>', title: '我的位置', map: map });
+                                map.setCenter(result.position);
+                            } else { map.setCenter([116.397428, 39.90923]); }
+                        });
+                    });
+                } catch(e) { mapDiv.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ef4444;background:#f8fafc;">地图加载失败，请检查密钥</div>'; }
+            }
+        }
+        setTimeout(initGymMap, 1000);
+
+        window.addToCartQuick = function(id, name, price, image) {
+            if (event) event.stopPropagation();
+            fetch('/add-to-cart', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id || new Date().getTime().toString(), name: name, price: price, image: image, type: 'equipment' })
+            }).then(res => res.json()).then(data => {
+                if(data.code === 0) alert(`✅ 成功将【${name}】加入购物车！`); else alert(data.msg || '添加失败');
+            }).catch(() => alert('网络请求失败'));
+        };
+        window.moveEquipmentCarousel = function(direction) {
+            const carousel = document.getElementById('equipmentCarousel');
+            if (carousel) carousel.scrollBy({ left: direction * 300, behavior: 'smooth' });
+        }
+
+        const embeddedChatInput = document.getElementById('embeddedChatInput');
+        const embeddedSendBtn = document.getElementById('embeddedSendBtn');
+        const embeddedChatHistory = document.getElementById('embeddedChatHistory');
+
+        document.querySelectorAll('.quick-question-btn').forEach(btn => {
+            btn.addEventListener('click', function() { embeddedChatInput.value = this.innerText; sendEmbeddedMessage(); });
+        });
+
+        if (embeddedSendBtn && embeddedChatInput) {
+            embeddedSendBtn.addEventListener('click', sendEmbeddedMessage);
+            embeddedChatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendEmbeddedMessage(); });
+        }
+
+        function appendEmbeddedMessage(text, role) {
+            const div = document.createElement('div');
+            div.className = `d-flex align-items-start mb-4 ${role === 'user' ? 'justify-content-end' : ''}`;
+            if (role === 'user') {
+                div.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #344054 0%, #1e293b 100%); color: white; padding: 14px 20px; border-radius: 20px 20px 4px 20px; max-width: 80%; box-shadow: 0 6px 15px rgba(0,0,0,0.1); font-size: 1.05rem;">${text}</div>
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: #344054; display: flex; align-items: center; justify-content: center; margin-left: 14px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0;"><i class="bi bi-person-fill" style="font-size: 20px;"></i></div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="ai-pulse" style="width: 44px; height: 44px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin-right: 14px; box-shadow: 0 4px 12px rgba(212, 181, 142, 0.2); border: 1px solid rgba(212, 181, 142, 0.5); color: #d4b58e; flex-shrink: 0;"><i class="bi bi-stars" style="font-size: 20px;"></i></div>
+                    <div style="background: #ffffff; color: #2c3e50; padding: 16px 22px; border-radius: 4px 20px 20px 20px; max-width: 80%; border: 1px solid rgba(212, 181, 142, 0.2); box-shadow: 0 6px 20px rgba(0,0,0,0.03); font-size: 1.05rem;">${text}</div>
+                `;
+            }
+            embeddedChatHistory.appendChild(div);
+            embeddedChatHistory.scrollTop = embeddedChatHistory.scrollHeight;
+        }
+
+        async function sendEmbeddedMessage() {
+            const message = embeddedChatInput.value.trim();
+            if (!message) return;
+            appendEmbeddedMessage(message, 'user');
+            embeddedChatInput.value = '';
+
+            const msgId = 'ai-' + Date.now();
+            const aiContainer = document.createElement('div');
+            aiContainer.className = 'd-flex align-items-start mb-4';
+            aiContainer.innerHTML = `
+                <div class="ai-pulse" style="width: 44px; height: 44px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; margin-right: 14px; box-shadow: 0 4px 12px rgba(212, 181, 142, 0.2); border: 1px solid rgba(212, 181, 142, 0.5); color: #d4b58e; flex-shrink: 0;"><i class="bi bi-stars" style="font-size: 20px;"></i></div>
+                <div style="background: #ffffff; color: #2c3e50; padding: 16px 22px; border-radius: 4px 20px 20px 20px; max-width: 80%; width: 100%; border: 1px solid rgba(212, 181, 142, 0.2); box-shadow: 0 6px 20px rgba(0,0,0,0.03); font-size: 1.05rem;">
+                    <div id="${msgId}" style="white-space: pre-wrap; line-height: 1.6;">ZENITH 正在思考 <i class="bi bi-three-dots"></i></div>
+                </div>`;
+            embeddedChatHistory.appendChild(aiContainer);
+            embeddedChatHistory.scrollTop = embeddedChatHistory.scrollHeight;
+
+            try {
+                const response = await fetch('/assistant/chat', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                if (response.ok) {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    const targetDiv = document.getElementById(msgId);
+                    let fullContent = '';
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        const lines = decoder.decode(value).split('\n');
+                        for (const line of lines) {
+                            if (line.startsWith('data:')) {
+                                const dataStr = line.replace('data:', '').trim();
+                                if(!dataStr || dataStr === '[DONE]') continue;
+                                try {
+                                    const data = JSON.parse(dataStr);
+                                    if (data.content) {
+                                        fullContent += data.content;
+                                        targetDiv.innerHTML = fullContent.replace(/\n/g, '<br>');
+                                        embeddedChatHistory.scrollTop = embeddedChatHistory.scrollHeight;
+                                    } else if (data.error) targetDiv.innerHTML = `<span style="color: red;">${data.error}</span>`;
+                                } catch (e) {}
+                            }
+                        }
+                    }
+                } else document.getElementById(msgId).innerHTML = "<span style='color:red;'>连接失败，请稍后再试。</span>";
+            } catch (err) {
+                document.getElementById(msgId).innerHTML = "<span style='color:red;'>网络异常，请检查后端运行状态。</span>";
+            }
+        }
+    });
+</script>
+{% endblock %}
